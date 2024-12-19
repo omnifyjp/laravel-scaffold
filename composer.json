@@ -1,0 +1,45 @@
+{
+  "name": "famm/support",
+  "version": "1.0.0",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../famm-core"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "FammSupport\\": "src/"
+    },
+    "files": [
+      "helpers/common.php"
+    ]
+  },
+  "authors": [
+    {
+      "name": "Pham Thai Duong",
+      "email": "26842626+ecsol@users.noreply.github.com"
+    }
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [
+        "FammSupport\\FammSupportServiceProvider"
+      ],
+      "aliases": {
+      }
+    }
+  },
+  "scripts": {
+  },
+  "require": {
+    "php": "^8.2",
+    "famm/core": "1.0.0",
+    "laravel/framework": "^11.0",
+    "phpoffice/phpspreadsheet": "^3.6",
+    "aws/aws-sdk-php": "^3.336"
+  }
+}
