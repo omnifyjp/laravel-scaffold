@@ -4,6 +4,8 @@ namespace FammSupport;
 
 use FammApp\Schema;
 use FammApp\View;
+use FammSupport\Services\Aws\SnsService;
+use FammSupport\Services\Aws\DynamoDBService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +36,15 @@ class FammSupportServiceProvider extends ServiceProvider
                 return new View();
             });
         }
+
+        $this->app->singleton(DynamoDBService::class, function (Application $app) {
+            return new DynamoDBService();
+        });
+
+        $this->app->singleton(SnsService::class, function (Application $app) {
+            return new SnsService();
+        });
+
 
         if (class_exists('\FammApp\Schema')) {
             $this->app->singleton(Schema::class, function (Application $app) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport\Services;
+namespace FammSupport\Services\Aws;
 
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
@@ -28,6 +28,7 @@ class DynamoDBService
 
     /**
      * Get item by primary key
+     * @throws Exception
      */
     public function getItem($tableName, $key): mixed
     {
@@ -41,7 +42,7 @@ class DynamoDBService
                 ? $this->marshaler->unmarshalItem($result['Item'])
                 : null;
         } catch (Exception $e) {
-            \Log::error('DynamoDB getItem error: ' . $e->getMessage());
+            Log::error('DynamoDB getItem error: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -67,20 +68,23 @@ class DynamoDBService
 
             return $items;
         } catch (Exception $e) {
-            \Log::error('DynamoDB query error: ' . $e->getMessage());
+            Log::error('DynamoDB query error: ' . $e->getMessage());
             throw $e;
         }
     }
+
     public function queryWithGSI(
-        string $tableName,
-        string $indexName,
-        string $keyConditionExpression,
-        array $expressionAttributeValues,
+        string  $tableName,
+        string  $indexName,
+        string  $keyConditionExpression,
+        array   $expressionAttributeValues,
         ?string $filterExpression = null,
-        bool $scanIndexForward = true,
-        ?int $limit = null,
-        ?array $expressionAttributeNames = null
-    ): array {
+        bool    $scanIndexForward = true,
+        ?int    $limit = null,
+        ?array  $expressionAttributeNames = null,
+        ?array  $startKey = null
+    ): array
+    {
         try {
             $params = [
                 'TableName' => $tableName,
@@ -92,6 +96,11 @@ class DynamoDBService
                 'ExpressionAttributeNames' => $expressionAttributeNames,
                 'ScanIndexForward' => $scanIndexForward
             ];
+            if (empty($expressionAttributeNames)) unset($params['ExpressionAttributeNames']);
+            // Add ExclusiveStartKey if provided
+            if ($startKey) {
+                $params['ExclusiveStartKey'] = $this->marshaler->marshalItem($startKey);
+            }
 
             // Add optional parameters if provided
             if ($filterExpression) {
@@ -104,19 +113,29 @@ class DynamoDBService
 
             $result = $this->client->query($params);
 
-            $items = [];
+            $response = [
+                'items' => [],
+                'lastEvaluatedKey' => null,
+                'count' => $result['Count'] ?? 0,
+                'scannedCount' => $result['ScannedCount'] ?? 0
+            ];
+
+            // Get items
             foreach ($result['Items'] as $item) {
-                $items[] = $this->marshaler->unmarshalItem($item);
+                $response['items'][] = $this->marshaler->unmarshalItem($item);
             }
 
-            return $items;
+            // Get LastEvaluatedKey for pagination
+            if (isset($result['LastEvaluatedKey'])) {
+                $response['lastEvaluatedKey'] = $this->marshaler->unmarshalItem($result['LastEvaluatedKey']);
+            }
+
+            return $response;
         } catch (Exception $e) {
             Log::error('DynamoDB GSI query error: ' . $e->getMessage());
             throw $e;
         }
     }
-
-
 
     /**
      * Put a new item
@@ -140,7 +159,7 @@ class DynamoDBService
      * Update an existing item
      * @throws Exception
      */
-    public function updateItem($tableName, $key, $updateExpression, $expressionAttributeValues): true
+    public function updateItem($tableName, array $key, $updateExpression, $expressionAttributeValues): true
     {
         try {
             $this->client->updateItem([
