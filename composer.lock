@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a33a5219c69739f347b11ebffac2ec29",
+    "content-hash": "7cc674ff6ba7448f3dfbd0b95cff11e3",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -665,10 +665,16 @@
         {
             "name": "famm/core",
             "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "../famm-core",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:Famgia/famm-core.git",
                 "reference": "85a841b2c9d69cad2c1dba62cfb824f75d35b074"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Famgia/famm-core/zipball/85a841b2c9d69cad2c1dba62cfb824f75d35b074",
+                "reference": "85a841b2c9d69cad2c1dba62cfb824f75d35b074",
+                "shasum": ""
             },
             "require": {
                 "ext-pdo": "*",
@@ -681,6 +687,7 @@
                 "symfony/yaml": "^7.1",
                 "tightenco/ziggy": "^2.3"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -709,10 +716,11 @@
                 }
             ],
             "description": "description",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "source": "https://github.com/Famgia/famm-core/tree/main",
+                "issues": "https://github.com/Famgia/famm-core/issues"
+            },
+            "time": "2025-01-16T08:30:39+00:00"
         },
         {
             "name": "fruitcake/php-cors",
