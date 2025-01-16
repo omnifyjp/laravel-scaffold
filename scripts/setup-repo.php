@@ -7,16 +7,24 @@ if ($env === 'production') {
     $composerJson['repositories'] = [
         [
             'type' => 'vcs',
-            'url' => 'https://github.com/Famgia/famm-support.git'
+            'url' => 'https://github.com/Famgia/famm-core.git',
+            'options' => [
+                "reference" => "main"
+            ]
         ]
     ];
+    $composerJson['require']['famm/core'] = 'dev-main';
 } else {
     $composerJson['repositories'] = [
         [
             'type' => 'path',
-            'url' => '../famm-core'
+            'url' => '../famm-core',
+            'options' => [
+                'symlink' => true
+            ]
         ]
     ];
+    $composerJson['require']['famm/core'] = '1.0.0';
 }
 
 file_put_contents(
