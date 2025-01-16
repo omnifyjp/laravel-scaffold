@@ -6,10 +6,10 @@
     "license": "proprietary",
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/Famgia/famm-core.git",
+            "type": "path",
+            "url": "../famm-core",
             "options": {
-                "reference": "main"
+                "symlink": true
             }
         }
     ],
@@ -37,15 +37,17 @@
     },
     "scripts": {
         "post-install-cmd": [
+            "git config core.hooksPath scripts/git-hooks",
             "@php scripts/setup-repo.php"
         ],
         "post-update-cmd": [
+            "git config core.hooksPath scripts/git-hooks",
             "@php scripts/setup-repo.php"
         ]
     },
     "require": {
         "php": "^8.2",
-        "famm/core": "dev-main",
+        "famm/core": "1.0.0",
         "laravel/framework": "^11.0",
         "phpoffice/phpspreadsheet": "^3.6",
         "aws/aws-sdk-php": "^3.336"
