@@ -3,6 +3,7 @@
 namespace FammSupport\Models;
 
 use Exception;
+use FammSupport\Helpers\Schema;
 use FammSupport\Models\Traits\UseQuery;
 use FammSupport\Services\SpreadsheetHelper;
 use Illuminate\Database\Eloquent\Model;
@@ -118,8 +119,7 @@ class Document extends Model
      */
     public function getMappingTargets(Model $baseModel): void
     {
-        $schema = static::schema();
-
+        $schema = $baseModel->schema();
         $targets = [];
         if ($this->generation_type == 'MULTIPLE') {
             $list_keys = [];
@@ -136,6 +136,7 @@ class Document extends Model
                     }
                 }
             }
+
             foreach ($this->getDocumentCriteria($targets) as $items) {
                 $keys = [];
                 $subtitle = [];
@@ -152,7 +153,7 @@ class Document extends Model
 
                 $generated_document = GeneratedDocument::withTrashed(true)->firstOrCreate([
                     'document_id' => $this->id,
-                    'morph_type' => get_class($baseModel),
+                    'morph_type' => class_basename($baseModel),
                     'morph_id' => $baseModel->id,
                     'key' => $key,
                 ], [
@@ -171,17 +172,15 @@ class Document extends Model
                     $generated_document->mapping_targets()->updateOrCreate([
                         'name' => $name,
                     ], [
-                        'mapping_type' => get_class($item),
+                        'mapping_type' => class_basename($item),
                         'mapping_id' => $item->id,
                     ]);
                 }
             }
-
             GeneratedDocument::query()
 //                ->where('document_id', $this->id)
                 ->whereNotIn('key', $list_keys)->delete();
         }
-
     }
 
     public function getDocumentCriteria($criteria): array
