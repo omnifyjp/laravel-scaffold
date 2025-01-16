@@ -23,7 +23,7 @@ if ($env === 'production') {
             ]
         ]
     ];
-    $composerJson['require']['famm/core'] = 'dev-main';
+//    $composerJson['require']['famm/core'] = 'dev-main';
 } else {
     $composerJson['repositories'] = [
         [
@@ -34,7 +34,7 @@ if ($env === 'production') {
             ]
         ]
     ];
-    $composerJson['require']['famm/core'] = '1.0.0';
+//    $composerJson['require']['famm/core'] = 'dev-main';
 }
 
 file_put_contents(

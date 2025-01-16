@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "830aebccd796af62b4d4ce594632095b",
+    "content-hash": "a33a5219c69739f347b11ebffac2ec29",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -664,11 +664,11 @@
         },
         {
             "name": "famm/core",
-            "version": "1.0.0",
+            "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "../famm-core",
-                "reference": "62608fd55d0ec0666d57856fa879dfcbab572c6f"
+                "reference": "85a841b2c9d69cad2c1dba62cfb824f75d35b074"
             },
             "require": {
                 "ext-pdo": "*",
@@ -6567,7 +6567,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "famm/core": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

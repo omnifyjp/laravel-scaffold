@@ -1,15 +1,15 @@
 {
     "name": "famm/support",
-    "version": "1.0.0",
+    "version": "dev-main",
     "description": "description",
     "minimum-stability": "stable",
     "license": "proprietary",
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/Famgia/famm-core.git",
+            "type": "path",
+            "url": "../famm-core",
             "options": {
-                "reference": "main"
+                "symlink": true
             }
         }
     ],
