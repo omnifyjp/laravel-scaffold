@@ -178,7 +178,7 @@ class Document extends Model
                 }
             }
             GeneratedDocument::query()
-//                ->where('document_id', $this->id)
+                ->where('document_id', $this->id)
                 ->whereNotIn('key', $list_keys)->delete();
         }
     }
