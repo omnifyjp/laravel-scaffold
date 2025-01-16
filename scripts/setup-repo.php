@@ -1,5 +1,15 @@
 <?php
-$env = getenv('APP_ENV') ?? 'local';
+$env = $argv[1] ?? null;
+
+if (!$env) {
+    if (file_exists(__DIR__ . '/../.env')) {
+        $envContent = file_get_contents(__DIR__ . '/../.env');
+        preg_match('/APP_ENV=(.*)/', $envContent, $matches);
+        $env = $matches[1] ?? 'dev';
+    } else {
+        $env = 'dev';
+    }
+}
 
 $composerJson = json_decode(file_get_contents(__DIR__ . '/../composer.json'), true);
 
