@@ -2,8 +2,8 @@
 
 namespace FammSupport;
 
-use FammApp\Schema;
-use FammApp\View;
+use FammSupport\Helpers\Schema;
+use FammSupport\Helpers\View;
 use FammSupport\Services\Aws\SnsService;
 use FammSupport\Services\Aws\DynamoDBService;
 use Illuminate\Contracts\Foundation\Application;
@@ -31,7 +31,7 @@ class FammSupportServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if (class_exists('\FammApp\View')) {
+        if (class_exists('\FammSupport\Helpers\View')) {
             $this->app->singleton(View::class, function (Application $app) {
                 return new View();
             });
@@ -45,12 +45,9 @@ class FammSupportServiceProvider extends ServiceProvider
             return new SnsService();
         });
 
-
-        if (class_exists('\FammApp\Schema')) {
-            $this->app->singleton(Schema::class, function (Application $app) {
-                return new Schema();
-            });
-        }
+        $this->app->singleton(Schema::class, function (Application $app) {
+            return new Schema();
+        });
 
         $this->loadRoutesFrom(famm_path('routes/api-collection.php'));
 

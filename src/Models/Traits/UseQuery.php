@@ -2,7 +2,7 @@
 
 namespace FammSupport\Models\Traits;
 
-use FammApp\Schema;
+use FammSupport\Helpers\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
