@@ -29,8 +29,8 @@ class DocumentField extends Model
         'type',
         'name',
         'coordinate',
-        'mapping_variable',
-        'mapping_formula',
+        'combination_variable',
+        'combination_formula',
         'kind',
         'action_type',
     ];

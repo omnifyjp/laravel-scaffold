@@ -48,14 +48,14 @@ class Document extends Model
     protected $casts = [
     ];
 
-    public function mapping_targets(): HasMany
+    public function combination_parameters(): HasMany
     {
-        return $this->hasMany(DocumentMappingTarget::class, 'document_id');
+        return $this->hasMany(DocumentCombinationParameter::class, 'document_id');
     }
 
     public function datasource(): HasMany
     {
-        return $this->hasMany(DocumentMappingTarget::class, 'document_id');
+        return $this->hasMany(DocumentCombinationParameter::class, 'document_id');
     }
 
     public function fields(): HasMany
@@ -120,18 +120,18 @@ class Document extends Model
     {
         $schema = $baseModel->schema();
         $targets = [];
-        if ($this->generation_type == 'MULTIPLE') {
+        if ($this->generation_type == 'COMBINATION') {
             $list_keys = [];
 
-            foreach ($this->mapping_targets as $mapping_target) {
-                if ($mapping_target->type == DocumentMappingTarget::TYPE_ATTRIBUTE) {
-                    if (!isset($schema['attributes'][$mapping_target->attributeName])) {
+            foreach ($this->combination_parameters as $combination_target) {
+                if ($combination_target->type == DocumentCombinationParameter::TYPE_ATTRIBUTE) {
+                    if (!isset($schema['attributes'][$combination_target->attributeName])) {
                         throw new Exception('Attribute not found');
                     }
-                    if ($baseModel->{$mapping_target->attributeName}() instanceof BelongsTo) {
-                        $targets[$mapping_target->name] = collect([$baseModel->{$mapping_target->attributeName}]);
+                    if ($baseModel->{$combination_target->attributeName}() instanceof BelongsTo) {
+                        $targets[$combination_target->name] = collect([$baseModel->{$combination_target->attributeName}]);
                     } else {
-                        $targets[$mapping_target->name] = $baseModel->{$mapping_target->attributeName};
+                        $targets[$combination_target->name] = $baseModel->{$combination_target->attributeName};
                     }
                 }
             }
@@ -168,11 +168,11 @@ class Document extends Model
                 }
                 foreach ($items as $name => $item) {
                     /** @var GeneratedDocument $generated_document */
-                    $generated_document->mapping_targets()->updateOrCreate([
+                    $generated_document->combination_parameters()->updateOrCreate([
                         'name' => $name,
                     ], [
-                        'mapping_type' => class_basename($item),
-                        'mapping_id' => $item->id,
+                        'combination_type' => class_basename($item),
+                        'combination_id' => $item->id,
                     ]);
                 }
             }

@@ -6,11 +6,11 @@ use FammSupport\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class DocumentMappingTarget extends Model
+class DocumentCombinationParameter extends Model
 {
     use UseQuery;
 
-    protected $table = '_document_mapping_targets';
+    protected $table = '_document_combination_parameters';
 
     protected $primaryKey = 'id';
 

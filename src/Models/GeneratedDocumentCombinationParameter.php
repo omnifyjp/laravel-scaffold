@@ -6,11 +6,11 @@ use FammSupport\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class GeneratedDocumentMappingTarget extends Model
+class GeneratedDocumentCombinationParameter extends Model
 {
     use UseQuery;
 
-    protected $table = '_generated_document_mapping_targets';
+    protected $table = '_generated_document_combination_parameters';
 
     protected $primaryKey = 'id';
 
@@ -20,16 +20,16 @@ class GeneratedDocumentMappingTarget extends Model
         'name',
         'type',
         'attributeName',
-        'mapping_type',
-        'mapping_id',
+        'combination_type',
+        'combination_id',
     ];
 
     protected $hidden = [
         'updated_at',
         'created_at',
-        'mapping_type',
+        'combination_type',
         '_generated_document_id',
-        'mapping_id',
+        'combination_id',
     ];
 
     protected $casts = [

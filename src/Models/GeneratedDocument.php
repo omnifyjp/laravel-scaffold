@@ -57,12 +57,12 @@ class GeneratedDocument extends Model
 
     public function datasource(): HasMany
     {
-        return $this->hasMany(GeneratedDocumentMappingTarget::class, '_generated_document_id');
+        return $this->hasMany(GeneratedDocumentCombinationParameter::class, '_generated_document_id');
     }
 
-    public function mapping_targets(): HasMany
+    public function combination_parameters(): HasMany
     {
-        return $this->hasMany(GeneratedDocumentMappingTarget::class, '_generated_document_id');
+        return $this->hasMany(GeneratedDocumentCombinationParameter::class, '_generated_document_id');
     }
 
     public function base(): MorphTo
@@ -84,15 +84,15 @@ class GeneratedDocument extends Model
         $fields = [];
 
         foreach ($this->document->fields as $field) {
-            $path = $field->mapping_variable;
-            if (preg_match('/^\$(\w+)(.\w+)+$/', $field->mapping_variable, $matches)) {
-                $path = substr($field->mapping_variable, 1);
+            $path = $field->combination_variable;
+            if (preg_match('/^\$(\w+)(.\w+)+$/', $field->combination_variable, $matches)) {
+                $path = substr($field->combination_variable, 1);
             }
 
             $value = $this->getValueFromPath($path, $datasource);
-            if ($field->mapping_formula) {
+            if ($field->combination_formula) {
                 $parser = new FormulaParser($value, $datasource);
-                $value = $parser->parse($field->mapping_formula);
+                $value = $parser->parse($field->combination_formula);
             }
             $fields[$field->kind][$field->name] = [
                 'value' => $value,
