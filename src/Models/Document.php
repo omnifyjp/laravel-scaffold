@@ -3,7 +3,6 @@
 namespace FammSupport\Models;
 
 use Exception;
-use FammSupport\Helpers\Schema;
 use FammSupport\Models\Traits\UseQuery;
 use FammSupport\Services\SpreadsheetHelper;
 use Illuminate\Database\Eloquent\Model;
