@@ -68,6 +68,11 @@ class Document extends Model
         return $this->morphOne(FileUpload::class, 'morph');
     }
 
+    public function generated_documents()
+    {
+        return $this->hasMany(GeneratedDocument::class, 'document_id');
+    }
+
     public function createFields(): Collection
     {
         ini_set('memory_limit', '-1');
@@ -116,13 +121,13 @@ class Document extends Model
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface|Exception
      */
-    public function getMappingTargets(Model $baseModel): void
+    public function generateDocuments(Model $baseModel): void
     {
         $schema = $baseModel->schema();
         $targets = [];
-        if ($this->generation_type == 'COMBINATION') {
-            $list_keys = [];
+        $list_keys = [];
 
+        if ($this->generation_type == 'COMBINATION') {
             foreach ($this->combination_parameters as $combination_target) {
                 if ($combination_target->type == DocumentCombinationParameter::TYPE_ATTRIBUTE) {
                     if (!isset($schema['attributes'][$combination_target->attributeName])) {
@@ -140,10 +145,12 @@ class Document extends Model
                 $keys = [];
                 $subtitle = [];
                 $description = '';
+                $parameters = [];
                 foreach ($items as $key => $val) {
                     $keys[$key] = $val->id;
                     $subtitle[$key] = $val->_title;
                     $description .= $key . ':' . $val->_title . "\n";
+                    $parameters[$key] = $val->_title;
                 }
                 ksort($keys);
 
@@ -158,6 +165,7 @@ class Document extends Model
                 ], [
                     'name' => $this->name . '【' . implode('-', $subtitle) . '】',
                     'description' => $description,
+                    'parameters' => $parameters,
                 ]);
                 $generated_document->update([
                     'name' => $this->name . '【' . implode('-', $subtitle) . '】',
@@ -176,10 +184,27 @@ class Document extends Model
                     ]);
                 }
             }
-            GeneratedDocument::query()
-                ->where('document_id', $this->id)
-                ->whereNotIn('key', $list_keys)->delete();
+
+        } else {
+            $key = sha1(serialize([get_class($baseModel), $baseModel->id]));
+            $list_keys[] = $key;
+
+            $generated_document = GeneratedDocument::withTrashed(true)->firstOrCreate([
+                'document_id' => $this->id,
+                'morph_type' => class_basename($baseModel),
+                'morph_id' => $baseModel->id,
+                'key' => $key,
+            ], [
+                'name' => $this->name,
+            ]);
+            if ($generated_document->trashed()) {
+                $generated_document->restore();
+            }
         }
+
+        GeneratedDocument::query()
+            ->where('document_id', $this->id)
+            ->whereNotIn('key', $list_keys)->delete();
     }
 
     public function getDocumentCriteria($criteria): array
