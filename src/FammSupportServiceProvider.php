@@ -24,6 +24,12 @@ class FammSupportServiceProvider extends ServiceProvider
             require_once famm_path('app/bootstrap.php');
         }
 
+        if (function_exists('addSchemaPath')) try {
+            addSchemaPath(__DIR__ . '/../database/schemas');
+        } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
+        }
+
+
         $this->commands([]);
     }
 

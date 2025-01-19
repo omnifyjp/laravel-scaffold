@@ -1,0 +1,44 @@
+kind: collection
+displayName: 権限
+groupName: System
+titleIndex: name
+options:
+  private: true
+  softDelete: false
+attributes:
+  name:
+    type: String
+    displayName: 権限名
+    rules:
+      maxLength: 128
+      required: true
+  code:
+    type: String
+    displayName: 権限コード
+    nullable: false
+    unique: true
+    editable: false
+    rules:
+      maxLength: 64
+      required: true
+  description:
+    displayName: 説明
+    type: String
+    nullable: true
+    properties:
+      multiline: true
+    rules:
+      maxLength: 1000
+      required: false
+  group:
+    displayName: 権限グループ
+    type: Association
+    relation: ManyToOne
+    target: PermissionGroup
+    inversedBy: permissions
+  roles:
+    displayName: ロール
+    type: Association
+    relation: ManyToMany
+    target: Role
+    inversedBy: permissions

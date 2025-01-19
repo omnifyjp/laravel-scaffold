@@ -141,6 +141,7 @@ class Document extends Model
                 }
             }
 
+//            dd($this->getDocumentCriteria($targets));
             foreach ($this->getDocumentCriteria($targets) as $items) {
                 $keys = [];
                 $subtitle = [];
@@ -212,13 +213,16 @@ class Document extends Model
         $result = [[]];
         foreach ($criteria as $key => $values) {
             $temp = [];
+
             foreach ($result as $item) {
                 foreach ($values as $value) {
-                    $temp[] = $item + [$key => $value];
+                    if ($value != null)
+                        $temp[] = $item + [$key => $value];
                 }
             }
             $result = $temp;
         }
+        
 
         return $result;
     }

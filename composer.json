@@ -6,10 +6,10 @@
     "license": "proprietary",
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/Famgia/famm-core.git",
+            "type": "path",
+            "url": "../famm-core",
             "options": {
-                "reference": "main"
+                "symlink": true
             }
         }
     ],
