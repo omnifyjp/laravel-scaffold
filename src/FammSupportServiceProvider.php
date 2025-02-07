@@ -26,7 +26,7 @@ class FammSupportServiceProvider extends ServiceProvider
 
         if (function_exists('addSchemaPath')) try {
             addSchemaPath(__DIR__ . '/../database/schemas');
-        } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
+        } catch (NotFoundExceptionInterface | ContainerExceptionInterface $e) {
         }
 
 
@@ -55,7 +55,8 @@ class FammSupportServiceProvider extends ServiceProvider
             return new Schema();
         });
 
-        $this->loadRoutesFrom(famm_path('routes/api-collection.php'));
-
+        if (File::exists(famm_path('routes/api-collection.php'))) {
+            $this->loadRoutesFrom(famm_path('routes/api-collection.php'));
+        }
     }
 }

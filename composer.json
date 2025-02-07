@@ -2,7 +2,7 @@
     "name": "famm/support",
     "version": "dev-main",
     "description": "description",
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "license": "proprietary",
     "repositories": [
         {
@@ -46,10 +46,6 @@
         ]
     },
     "require": {
-        "php": "^8.2",
-        "famm/core": "dev-main",
-        "laravel/framework": "^11.0",
-        "phpoffice/phpspreadsheet": "^3.6",
-        "aws/aws-sdk-php": "^3.336"
+        "famm/core": "dev-main"
     }
 }
