@@ -13,7 +13,6 @@ class SelectOption extends Model
 
     protected $fillable = [
         'selectName',
-        'displayName',
         'value',
         'label',
         'description',

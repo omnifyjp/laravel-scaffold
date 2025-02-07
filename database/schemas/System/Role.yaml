@@ -34,7 +34,7 @@ attributes:
     type: Association
     relation: ManyToMany
     target: Permission
-    mappedBy: roles
+    inversedBy: roles
 #  users:
 #    displayName: 会員
 #    type: Association

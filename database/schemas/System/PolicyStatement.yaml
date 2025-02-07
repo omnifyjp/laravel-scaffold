@@ -1,0 +1,40 @@
+kind: collection
+displayName: ポリシー
+groupName: System
+titleIndex: name
+options:
+  private: true
+  softDelete: false
+attributes:
+  policy:
+    displayName: ポリシー
+    nullable: false
+    type: Association
+    relation: ManyToOne
+    target: Policy
+    inversedBy: policy_statements
+  effect:
+    displayName: アクセス許可
+    nullable: false
+    type: Enum
+    enum:
+      - value: Allow
+        label: アクセスを許可
+      - value: Deny
+        label: アクセスを拒否
+    rules:
+      required: true
+  permissions:
+    displayName: 権限
+    type: Association
+    relation: ManyToMany
+    target: Permission
+    inversedBy: policies
+  resources:
+    displayName: リソースズ
+    nullable: true
+    type: Json
+  conditions:
+    displayName: 条件
+    nullable: true
+    type: Json

@@ -1,0 +1,14 @@
+kind: collection
+displayName: ポリシー
+groupName: System
+titleIndex: name
+options:
+  private: true
+  softDelete: false
+attributes:
+  name:
+    type: String
+    displayName: ポリシー名
+    rules:
+      maxLength: 128
+      required: true

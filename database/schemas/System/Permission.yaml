@@ -36,9 +36,3 @@ attributes:
     relation: ManyToOne
     target: PermissionGroup
     inversedBy: permissions
-  roles:
-    displayName: ロール
-    type: Association
-    relation: ManyToMany
-    target: Role
-    inversedBy: permissions

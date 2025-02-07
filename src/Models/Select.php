@@ -37,6 +37,18 @@ class Select extends Model
         'autoCreated' => 'boolean',
     ];
 
+    public static function labelToValue($name, $label)
+    {
+        $select = static::query()->where('selectName', $name)->first();
+        return $select?->options()->where('label', $label)->first() ?? null;
+    }
+
+    public static function getOptions($name)
+    {
+        $select = static::query()->where('selectName', $name)->first();
+        return $select?->options;
+    }
+
     public function options(): HasMany
     {
         return $this->hasMany(SelectOption::class, 'selectName', 'selectName');
