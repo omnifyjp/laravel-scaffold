@@ -6,10 +6,10 @@
     "license": "proprietary",
     "repositories": [
         {
-            "type": "path",
-            "url": "../famm-core",
+            "type": "vcs",
+            "url": "https://github.com/Famgia/famm-core.git",
             "options": {
-                "symlink": true
+                "reference": "main"
             }
         }
     ],
@@ -46,9 +46,6 @@
         ]
     },
     "require": {
-        "php": "^8.2",
-        "famm/core": "dev-main",
-        "phpoffice/phpspreadsheet": "^3.6",
-        "aws/aws-sdk-php": "^3.336"
+        "famm/core": "dev-main"
     }
 }

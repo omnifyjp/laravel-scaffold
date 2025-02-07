@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c6c2384dbf60d012d96552752d0df04f",
+    "content-hash": "92e64e8669684d37efc43519f18b5c9a",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -748,18 +748,27 @@
         {
             "name": "famm/core",
             "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:Famgia/famm-core.git",
+                "reference": "a1c84499f116a3c4d7420e9104ba9e02d074934f"
+            },
             "dist": {
-                "type": "path",
-                "url": "../famm-core",
-                "reference": "8a9e539707f4a5415c6986c503ce16d7473197e8"
+                "type": "zip",
+                "url": "https://api.github.com/repos/Famgia/famm-core/zipball/a1c84499f116a3c4d7420e9104ba9e02d074934f",
+                "reference": "a1c84499f116a3c4d7420e9104ba9e02d074934f",
+                "shasum": ""
             },
             "require": {
+                "aws/aws-sdk-php": "^3.336",
                 "ext-pdo": "*",
                 "kalnoy/nestedset": "^6.0",
                 "laravel/framework": "^11.0",
                 "php": "^8.2",
+                "phpoffice/phpspreadsheet": "^3.6",
                 "symfony/yaml": "^7.1"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -787,10 +796,11 @@
                 }
             ],
             "description": "description",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "source": "https://github.com/Famgia/famm-core/tree/main",
+                "issues": "https://github.com/Famgia/famm-core/issues"
+            },
+            "time": "2025-02-07T06:46:11+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -6371,9 +6381,7 @@
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": {
-        "php": "^8.2"
-    },
+    "platform": {},
     "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

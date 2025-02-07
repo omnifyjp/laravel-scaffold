@@ -13,7 +13,7 @@ if (!$env) {
 
 $composerJson = json_decode(file_get_contents(__DIR__ . '/../composer.json'), true);
 
-if ($env === 'production') {
+if ($env != 'local') {
     $composerJson['repositories'] = [
         [
             'type' => 'vcs',
@@ -23,7 +23,7 @@ if ($env === 'production') {
             ]
         ]
     ];
-//    $composerJson['require']['famm/core'] = 'dev-main';
+    //    $composerJson['require']['famm/core'] = 'dev-main';
 } else {
     $composerJson['repositories'] = [
         [
@@ -34,7 +34,7 @@ if ($env === 'production') {
             ]
         ]
     ];
-//    $composerJson['require']['famm/core'] = 'dev-main';
+    //    $composerJson['require']['famm/core'] = 'dev-main';
 }
 
 file_put_contents(
