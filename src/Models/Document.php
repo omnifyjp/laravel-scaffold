@@ -130,13 +130,13 @@ class Document extends Model
         if ($this->generation_type == 'COMBINATION') {
             foreach ($this->combination_parameters as $combination_target) {
                 if ($combination_target->type == DocumentCombinationParameter::TYPE_ATTRIBUTE) {
-                    if (!isset($schema['attributes'][$combination_target->attributeName])) {
+                    if (!isset($schema['attributes'][$combination_target->propertyName])) {
                         throw new Exception('Attribute not found');
                     }
-                    if ($baseModel->{$combination_target->attributeName}() instanceof BelongsTo) {
-                        $targets[$combination_target->name] = collect([$baseModel->{$combination_target->attributeName}]);
+                    if ($baseModel->{$combination_target->propertyName}() instanceof BelongsTo) {
+                        $targets[$combination_target->name] = collect([$baseModel->{$combination_target->propertyName}]);
                     } else {
-                        $targets[$combination_target->name] = $baseModel->{$combination_target->attributeName};
+                        $targets[$combination_target->name] = $baseModel->{$combination_target->propertyName};
                     }
                 }
             }

@@ -19,7 +19,7 @@ class DocumentCombinationParameter extends Model
     protected $fillable = [
         'name',
         'type',
-        'attributeName',
+        'propertyName',
         'custom_data',
     ];
 

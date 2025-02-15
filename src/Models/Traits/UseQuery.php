@@ -42,7 +42,7 @@ trait UseQuery
 
         foreach ($schema['attributes'] as $item) {
             if ($item['type'] == Schema::TYPE_ASSOCIATION) {
-                $withs[$item['attributeName']] = function ($query) {
+                $withs[$item['propertyName']] = function ($query) {
                 };
             }
         }
@@ -60,16 +60,16 @@ trait UseQuery
         $schema = static::schema();
         foreach ($schema['attributes'] as $item) {
             if ($item['type'] == Schema::TYPE_SELECT) {
-                $withs[$item['attributeName']] = function ($query) {
+                $withs[$item['propertyName']] = function ($query) {
                 };
             } elseif ($item['type'] == Schema::TYPE_LOOKUP) {
-                $withs[$item['attributeName']] = function ($query) {
+                $withs[$item['propertyName']] = function ($query) {
                 };
             }
-            if ($item['fields']) {
+            if (isset($item['fields']) && is_array($item['fields'])) {
                 foreach ($item['fields'] as $field) {
                     if ($field['type'] == Schema::TYPE_SELECT) {
-                        $withs[$field['attributeName']] = function ($query) {
+                        $withs[$field['propertyName']] = function ($query) {
                         };
                     }
                 }
@@ -93,9 +93,9 @@ trait UseQuery
             $builder->where(function (Builder $query) use ($keyword, $schema) {
                 $titleIndex = $schema['titleIndex'] ?? null;
                 if ($titleIndex && $attr = $schema['attributes'][$titleIndex]) {
-                    if ($attr['fields']) {
+                    if (isset($attr['fields']) && is_array($attr['fields'])) {
                         foreach ($attr['fields'] as $field) {
-                            $query->orWhere($field['attributeName'], 'like', "%$keyword%");
+                            $query->orWhere($field['propertyName'], 'like', "%$keyword%");
                         }
                     } else {
                         $query->orWhere($titleIndex, 'like', "%$keyword%");

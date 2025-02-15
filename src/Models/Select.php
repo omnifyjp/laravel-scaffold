@@ -22,6 +22,7 @@ class Select extends Model
         'displayName',
         'description',
         'autoCreated',
+        'sort'
     ];
 
     protected $hidden = [
@@ -59,4 +60,28 @@ class Select extends Model
         return Select::with('options')->select('selectName', 'displayName', 'description')->get();
     }
 
+
+    static function retrieve($name): array
+    {
+        $select = static::with(['options' => function ($query) {
+            $query->orderBy('sort');
+        }])->where('selectName', $name)->first();
+        $options = $select->options->groupBy('groupName');
+        if (count($options) == 1) {
+            $options = $select->options;
+        } else {
+            $options = [];
+            foreach ($select->options->groupBy('groupName') as $name => $option) {
+                $options[] = [
+                    'label' => $name,
+                    'options' => $option,
+                ];
+            }
+        }
+        return [
+            "displayName" => $select['displayName'],
+            "description" => $select['description'],
+            "options" => $options
+        ];
+    }
 }

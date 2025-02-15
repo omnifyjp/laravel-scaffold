@@ -59,14 +59,14 @@ class Schema
         return $this->schemas;
     }
 
-    public function get($collectionName): ?Collection
+    public function get($objectName): ?Collection
     {
-        return collect($this->schemas[$collectionName]) ?? null;
+        return collect($this->schemas[$objectName]) ?? null;
     }
 
-    public function getTarget($collectionName, $attributeName): ?Collection
+    public function getTarget($objectName, $propertyName): ?Collection
     {
-        $collection = $this->get($collectionName);
-        return collect($this->get($collection['attributes'][$attributeName]['target'])) ?? null;
+        $collection = $this->get($objectName);
+        return collect($this->get($collection['attributes'][$propertyName]['target'])) ?? null;
     }
 }

@@ -9,8 +9,7 @@ attributes:
   policy:
     displayName: ポリシー
     nullable: false
-    type: Association
-    relation: ManyToOne
+    type: Lookup
     target: Policy
     inversedBy: policy_statements
   effect:

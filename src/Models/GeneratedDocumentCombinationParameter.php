@@ -19,7 +19,7 @@ class GeneratedDocumentCombinationParameter extends Model
     protected $fillable = [
         'name',
         'type',
-        'attributeName',
+        'propertyName',
         'combination_type',
         'combination_id',
     ];
