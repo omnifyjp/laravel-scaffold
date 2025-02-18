@@ -40,7 +40,7 @@ trait UseQuery
         $withs = [];
         $schema = static::schema();
 
-        foreach ($schema['attributes'] as $item) {
+        foreach ($schema['properties'] as $item) {
             if ($item['type'] == Schema::TYPE_ASSOCIATION) {
                 $withs[$item['propertyName']] = function ($query) {
                 };
@@ -58,7 +58,7 @@ trait UseQuery
     {
         $withs = [];
         $schema = static::schema();
-        foreach ($schema['attributes'] as $item) {
+        foreach ($schema['properties'] as $item) {
             if ($item['type'] == Schema::TYPE_SELECT) {
                 $withs[$item['propertyName']] = function ($query) {
                 };
@@ -92,7 +92,7 @@ trait UseQuery
         if ($keyword) {
             $builder->where(function (Builder $query) use ($keyword, $schema) {
                 $titleIndex = $schema['titleIndex'] ?? null;
-                if ($titleIndex && $attr = $schema['attributes'][$titleIndex]) {
+                if ($titleIndex && $attr = $schema['properties'][$titleIndex]) {
                     if (isset($attr['fields']) && is_array($attr['fields'])) {
                         foreach ($attr['fields'] as $field) {
                             $query->orWhere($field['propertyName'], 'like', "%$keyword%");

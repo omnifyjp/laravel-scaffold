@@ -1,11 +1,11 @@
-kind: collection
+kind: object
 displayName: ポリシー
 groupName: System
 titleIndex: name
 options:
   private: true
   softDelete: false
-attributes:
+properties:
   name:
     type: String
     displayName: ポリシー名

@@ -67,6 +67,6 @@ class Schema
     public function getTarget($objectName, $propertyName): ?Collection
     {
         $collection = $this->get($objectName);
-        return collect($this->get($collection['attributes'][$propertyName]['target'])) ?? null;
+        return collect($this->get($collection['properties'][$propertyName]['target'])) ?? null;
     }
 }

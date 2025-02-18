@@ -1,11 +1,11 @@
-kind: collection
+kind: object
 displayName: 権限
 groupName: System
 titleIndex: name
 options:
   private: true
   softDelete: false
-attributes:
+properties:
   name:
     type: String
     displayName: 権限名

@@ -1,4 +1,4 @@
-kind: collection
+kind: object
 displayName: 権限グループ
 groupName: System
 titleIndex: name
@@ -6,7 +6,7 @@ options:
   private: true
   softDelete: false
   nestedSet: true
-attributes:
+properties:
   name:
     displayName: 権限グループ名
     type: String
