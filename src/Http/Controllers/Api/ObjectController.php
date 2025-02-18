@@ -6,54 +6,22 @@ use FammSupport\Models\Select;
 
 class ObjectController
 {
-    public function list(): array
+    const CACHE_KEY_SYSTEM_API_COLLECTIONS = 'cache@api.objects';
+
+    public function list()
     {
-        $selects = [];
-        foreach (Select::with('options')->get() as $item) {
-            $selects[$item->selectName] = $this->transform($item);
-        }
-        return $selects;
+        return cache()->remember(self::CACHE_KEY_SYSTEM_API_COLLECTIONS, now()->addMinutes(30), function () {
+            return famm_schema()->all();
+        });
     }
 
-    public function show($selectName): array
+    public function getObject()
     {
-        $select = Select::with('options')->where('selectName', $selectName)->firstOrFail();
-        return $this->transform($select);
+        
     }
 
-    private function transform(Select $item): array
+    public function getProperty()
     {
-        $options = $item->options->groupBy('groupName');
-        if (count($options) == 1) {
-            $output = $options->first()->map(function ($item) {
-                return [
-                    'value' => $item->value,
-                    'label' => $item->label,
-                    'icon' => $item->icon,
-                    'disabled' => $item->disabled,
-                ];
-            });
-        } else {
-            $output = [];
-            foreach ($item->options->groupBy('groupName') as $name => $options) {
-                $output[] = [
-                    'label' => $name,
-                    'options' => $options->map(function ($item) {
-                        return [
-                            'value' => $item->value,
-                            'label' => $item->label,
-                            'icon' => $item->icon,
-                            'disabled' => $item->disabled,
-                        ];
-                    }),
-                ];
-            }
-        }
-
-        return [
-            "displayName" => $item['displayName'],
-            "description" => $item['description'],
-            "options" => $output
-        ];
+        
     }
 }
