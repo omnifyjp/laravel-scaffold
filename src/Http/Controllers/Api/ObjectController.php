@@ -7,21 +7,32 @@ use FammSupport\Models\Select;
 class ObjectController
 {
     const CACHE_KEY_SYSTEM_API_COLLECTIONS = 'cache@api.objects';
+    private $objects;
+
+    public function __construct()
+    {
+        $this->objects = famm_schema()->all();
+
+    }
 
     public function list()
     {
-        return cache()->remember(self::CACHE_KEY_SYSTEM_API_COLLECTIONS, now()->addMinutes(30), function () {
-            return famm_schema()->all();
-        });
+        return $this->objects;
     }
 
-    public function getObject()
+    public function getObject($objectName)
     {
-        
+        $object = $this->objects[$objectName] ?? null;
+        if (!$object) abort(404);
+        return $object;
     }
 
-    public function getProperty()
+    public function getProperty($objectName, $propertyName)
     {
-        
+        $object = $this->objects[$objectName] ?? null;
+        if (!$object) abort(404);
+        $property = $object['properties'][$propertyName] ?? null;
+        if (!$property) abort(404);
+        return $property;
     }
 }

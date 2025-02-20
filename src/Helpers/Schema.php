@@ -8,39 +8,24 @@ use Illuminate\Support\Facades\File;
 class Schema
 {
     const TYPE_ID = 'Id';
-
     const TYPE_STRING = 'String';
-
     const TYPE_ASSOCIATION = 'Association';
-
     const TYPE_LOOKUP = 'Lookup';
-
     const TYPE_TIMESTAMP = 'Timestamp';
-
     const TYPE_BIG_INT = 'BigInt';
-
     const TYPE_JAPAN_PERSON_NAME = 'JapanPersonName';
-
     const TYPE_SELECT = 'Select';
-
+    const TYPE_ENUM = 'Enum';
+    const TYPE_JSON = 'Json';
     const TYPE_EMAIL = 'Email';
-
     const TYPE_PASSWORD = 'Password';
-
     const TYPE_INT = 'Int';
-
     const TYPE_TEXT = 'Text';
-
     const TYPE_DATE = 'Date';
-
     const TYPE_JAPAN_ADDRESS = 'JapanAddress';
-
     const TYPE_ADDRESS = 'Address';
-
     const RELATION_MANY_TO_ONE = 'ManyToOne';
-
     const RELATION_MANY_TO_MANY = 'ManyToMany';
-
     const RELATION_ONE_TO_MANY = 'OneToMany';
 
     private Collection $schemas;
