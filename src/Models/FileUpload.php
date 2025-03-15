@@ -4,9 +4,11 @@ namespace FammSupport\Models;
 
 use FammSupport\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * @property string $generation_type
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
  * @property mixed $disk
  * @property mixed $path
  * @property mixed $name
+ * @property mixed|null $expired_at
  */
 class FileUpload extends Model
 {
@@ -25,40 +28,42 @@ class FileUpload extends Model
     protected $table = '_files';
 
     protected $fillable = [
+        'uid',
         'name',
         'mime',
         'disk',
         'path',
         'updated_at',
+        'expired_at'
     ];
 
     protected $hidden = [
-        'base_collection',
+        'id',
         'disk',
         'path',
         'morph_type',
         'morph_id',
-        //        'created_at',
-        //        'updated_at',
-        'datasource_id',
         'deleted_at',
     ];
 
     protected $appends = [
-        'download_url',
+        'url',
     ];
 
-    public function getDownloadUrlAttribute()
+    public function getUrlAttribute(): string
     {
         if ($this->disk == 'local') {
-            $path = Storage::disk($this->disk)->path($this->path);
-
             return route('download', [
                 'key' => encrypt([
                     'id' => $this->id,
                     'expired_at' => now()->addMinutes(60)->timestamp,
                 ]),
             ]);
+        } elseif ($this->disk == 'public') {
+            $url = Storage::disk($this->disk)->url($this->path);
+            return str_starts_with($url, 'http') ? $url : url($url);
+        } elseif ($this->disk == 's3') {
+            return Storage::disk($this->disk)->temporaryUrl($this->path, now()->addMinutes(10));
         }
 
         return '';
@@ -67,34 +72,36 @@ class FileUpload extends Model
     public static function createFile($path, $filename = null, $disk = 'local')
     {
         if (File::exists($path)) {
-            if (! $filename) {
+            if (!$filename) {
                 $filename = basename($path);
             }
-            $save_path = 'uploads/'.now()->format('Ymd').'/'.uniqid().'.'.md5($filename).'.'.File::extension($path);
-            $file = Storage::disk($disk)->putFileAs($path, $save_path);
+            $save_path = 'uploads/' . now()->format('Ymd') . '/' . uniqid() . '.' . md5($filename) . '.' . Str::lower(File::extension($filename ?? $path));
+            Storage::disk($disk)->putFileAs($path, $save_path);
 
             return static::query()->create([
+                'uid' => Str::orderedUuid(),
                 'name' => $filename,
                 'mime' => Storage::disk($disk)->mimeType($save_path),
                 'disk' => $disk,
                 'path' => $save_path,
+                'expired_at' => now()->addMinutes(1440),
             ]);
         }
 
         return false;
     }
 
-    public function morph()
+    public function morph(): MorphTo
     {
         return $this->morphTo('morph', 'morph_type', 'morph_id');
     }
 
-    public function getBody()
+    public function getBody(): ?string
     {
         return Storage::disk($this->disk)->get($this->path);
     }
 
-    public function getPath()
+    public function getPath(): string
     {
         return Storage::disk($this->disk)->path($this->path);
     }

@@ -1,5 +1,6 @@
 <?php
 
+use FammSupport\Http\Controllers\Api\CollectionController;
 use FammSupport\Http\Controllers\Api\ObjectController;
 use FammSupport\Http\Controllers\Api\SelectController;
 use Illuminate\Support\Facades\Route;
@@ -11,5 +12,12 @@ Route::middleware(['web'])->group(function () {
         Route::get('objects', [ObjectController::class, 'list'])->name('api.objects');
         Route::get('objects/{objectName}', [ObjectController::class, 'getObject'])->name('api.objects.get-object');
         Route::get('objects/{objectName}/{propertyName}', [ObjectController::class, 'getProperty'])->name('api.objects.get-property');
+        Route::post('objects/{objectName}/{propertyName}/upload', [ObjectController::class, 'upload'])->name('api.objects.upload');
+
+        /**
+         *
+         */
+        Route::get('data/{objectName}', [CollectionController::class, 'index'])->name('api.objects.index');
+
     });
 });

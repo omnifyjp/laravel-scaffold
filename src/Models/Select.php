@@ -25,6 +25,7 @@ class Select extends Model
         'displayName',
         'description',
         'autoCreated',
+        'properties',
         'sort'
     ];
 
@@ -39,6 +40,7 @@ class Select extends Model
     protected $casts = [
         'isEnabled' => 'boolean',
         'autoCreated' => 'boolean',
+        'properties' => 'json'
     ];
 
     public static function labelToValue($name, $label)

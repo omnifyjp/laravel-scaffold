@@ -27,10 +27,12 @@ class SelectController
         if (count($options) == 1) {
             $output = $options->first()->map(function ($item) {
                 return [
+                    'id' => $item->id,
                     'value' => $item->value,
                     'label' => $item->label,
                     'icon' => $item->icon,
                     'disabled' => $item->disabled,
+                    'properties' => $item->properties,
                 ];
             });
         } else {
@@ -40,10 +42,12 @@ class SelectController
                     'label' => $name,
                     'options' => $options->map(function ($item) {
                         return [
+                            'id' => $item->id,
                             'value' => $item->value,
                             'label' => $item->label,
                             'icon' => $item->icon,
                             'disabled' => $item->disabled,
+                            'properties' => $item->properties,
                         ];
                     }),
                 ];

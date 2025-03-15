@@ -18,6 +18,7 @@ class SelectOption extends Model
         'description',
         'isEnabled',
         'autoCreated',
+        'properties'
     ];
 
     protected $hidden = [
