@@ -1,52 +1,52 @@
 {
-  "name": "famm/support",
-  "version": "dev-main",
-  "description": "description",
-  "minimum-stability": "dev",
-  "license": "proprietary",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/Famgia/famm-core.git",
-      "options": {
-        "reference": "main"
-      }
-    }
-  ],
-  "autoload": {
-    "psr-4": {
-      "FammSupport\\": "src/"
-    },
-    "files": [
-      "helpers/common.php"
-    ]
-  },
-  "authors": [
-    {
-      "name": "Pham Thai Duong",
-      "email": "26842626+ecsol@users.noreply.github.com"
-    }
-  ],
-  "extra": {
-    "laravel": {
-      "providers": [
-        "FammSupport\\FammSupportServiceProvider"
-      ],
-      "aliases": []
-    }
-  },
-  "scripts": {
-    "post-install-cmd": [
-      "git config core.hooksPath scripts/git-hooks",
-      "@php scripts/setup-repo.php"
+    "name": "famm/support",
+    "version": "dev-main",
+    "description": "description",
+    "minimum-stability": "dev",
+    "license": "proprietary",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Famgia/famm-core.git",
+            "options": {
+                "reference": "main"
+            }
+        }
     ],
-    "post-update-cmd": [
-      "git config core.hooksPath scripts/git-hooks",
-      "@php scripts/setup-repo.php"
-    ]
-  },
-  "require": {
-    "famm/core": "dev-main",
-    "laravel/sanctum": "^4.0"
-  }
+    "autoload": {
+        "psr-4": {
+            "FammSupport\\": "src/"
+        },
+        "files": [
+            "helpers/common.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Pham Thai Duong",
+            "email": "26842626+ecsol@users.noreply.github.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FammSupport\\FammSupportServiceProvider"
+            ],
+            "aliases": []
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "git config core.hooksPath scripts/git-hooks",
+            "@php scripts/setup-repo.php"
+        ],
+        "post-update-cmd": [
+            "git config core.hooksPath scripts/git-hooks",
+            "@php scripts/setup-repo.php"
+        ]
+    },
+    "require": {
+        "famm/core": "dev-main",
+        "laravel/sanctum": "^4.0"
+    }
 }
