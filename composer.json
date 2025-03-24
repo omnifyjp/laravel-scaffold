@@ -46,6 +46,7 @@
         ]
     },
     "require": {
-        "famm/core": "dev-main"
+        "famm/core": "dev-main",
+        "laravel/sanctum": "4.x-dev"
     }
 }

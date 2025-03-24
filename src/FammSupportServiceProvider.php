@@ -4,11 +4,13 @@ namespace FammSupport;
 
 use FammSupport\Helpers\Schema;
 use FammSupport\Helpers\View;
+use FammSupport\Models\PersonalAccessToken;
 use FammSupport\Services\Aws\SnsService;
 use FammSupport\Services\Aws\DynamoDBService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
@@ -20,6 +22,8 @@ class FammSupportServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
         if (File::exists(famm_path('app/bootstrap.php'))) {
             require_once famm_path('app/bootstrap.php');
         }
