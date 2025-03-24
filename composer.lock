@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f5717e1713bf8a70d8f726d966332fac",
+    "content-hash": "beb77a25f2ee11c54d7fbf7fbbe5d059",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -750,12 +750,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:Famgia/famm-core.git",
-                "reference": "775079b0a4669091d9bc5e3b433df66a57921a62"
+                "reference": "5bb4f58ed853aec974096485fb047699262252d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Famgia/famm-core/zipball/775079b0a4669091d9bc5e3b433df66a57921a62",
-                "reference": "775079b0a4669091d9bc5e3b433df66a57921a62",
+                "url": "https://api.github.com/repos/Famgia/famm-core/zipball/5bb4f58ed853aec974096485fb047699262252d0",
+                "reference": "5bb4f58ed853aec974096485fb047699262252d0",
                 "shasum": ""
             },
             "require": {
@@ -799,7 +799,7 @@
                 "source": "https://github.com/Famgia/famm-core/tree/main",
                 "issues": "https://github.com/Famgia/famm-core/issues"
             },
-            "time": "2025-03-07T11:44:57+00:00"
+            "time": "2025-03-24T09:24:00+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -3973,12 +3973,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "a5453dc9ba678ef5654ac1b618ca38f5ba631ebc"
+                "reference": "fcf020598209229f80cb3bbd264669b8b9515b98"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/a5453dc9ba678ef5654ac1b618ca38f5ba631ebc",
-                "reference": "a5453dc9ba678ef5654ac1b618ca38f5ba631ebc",
+                "url": "https://api.github.com/repos/symfony/console/zipball/fcf020598209229f80cb3bbd264669b8b9515b98",
+                "reference": "fcf020598209229f80cb3bbd264669b8b9515b98",
                 "shasum": ""
             },
             "require": {
@@ -4059,7 +4059,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-17T19:45:23+00:00"
+            "time": "2025-03-24T07:55:24+00:00"
         },
         {
             "name": "symfony/css-selector",
@@ -4576,12 +4576,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-kernel.git",
-                "reference": "fb1bc05b91545f406a145884ca5f434b2567cbdd"
+                "reference": "cc168c04e6232337b8fb9af4dfb035565feaf44a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/fb1bc05b91545f406a145884ca5f434b2567cbdd",
-                "reference": "fb1bc05b91545f406a145884ca5f434b2567cbdd",
+                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/cc168c04e6232337b8fb9af4dfb035565feaf44a",
+                "reference": "cc168c04e6232337b8fb9af4dfb035565feaf44a",
                 "shasum": ""
             },
             "require": {
@@ -4682,7 +4682,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-22T17:12:44+00:00"
+            "time": "2025-03-24T08:06:17+00:00"
         },
         {
             "name": "symfony/mailer",
@@ -5560,12 +5560,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/routing.git",
-                "reference": "5801dd9dcaeb9c1844b0aad9c3fe9d5f0c7e8aab"
+                "reference": "5d4973c3f6078c3b7de999bbe4b7b71b1bacad7b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/routing/zipball/5801dd9dcaeb9c1844b0aad9c3fe9d5f0c7e8aab",
-                "reference": "5801dd9dcaeb9c1844b0aad9c3fe9d5f0c7e8aab",
+                "url": "https://api.github.com/repos/symfony/routing/zipball/5d4973c3f6078c3b7de999bbe4b7b71b1bacad7b",
+                "reference": "5d4973c3f6078c3b7de999bbe4b7b71b1bacad7b",
                 "shasum": ""
             },
             "require": {
@@ -5633,7 +5633,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-06T15:04:12+00:00"
+            "time": "2025-03-24T08:06:17+00:00"
         },
         {
             "name": "symfony/service-contracts",
@@ -6430,8 +6430,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "famm/core": 20,
-        "laravel/sanctum": 20
+        "famm/core": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
