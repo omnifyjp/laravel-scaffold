@@ -25,7 +25,7 @@ class FileUpload extends Model
 
     protected $primaryKey = 'id';
 
-    protected $table = '_files';
+    protected $table = '_file_uploads';
 
     protected $fillable = [
         'uid',
