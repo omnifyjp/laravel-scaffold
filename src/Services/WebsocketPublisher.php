@@ -5,6 +5,7 @@ namespace FammSupport\Services;
 use FammSupport\Services\Aws\ApiGatewayManagementApiClient;
 use FammSupport\Services\Aws\DynamoDBService;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class WebsocketPublisher
 {
@@ -42,5 +43,7 @@ class WebsocketPublisher
                 ]);
             }
         }
+
+        Log::info("postToConnection:" . $messageData);
     }
 }
