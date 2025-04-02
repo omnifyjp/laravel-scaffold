@@ -38,9 +38,14 @@ class WebsocketPublisher
             $connectionId = $item['connectionId'];
             $res = $apiGatewayClient->postToConnection($connectionId, $messageData);
             if (!$res) {
+                Log::error("Error:" . $connectionId);
+
                 $dynamoDbClient->deleteItem("WebsocketConnectionTable", [
                     'connectionId' => $connectionId
                 ]);
+            }else{
+                Log::info("Sent:" . $connectionId);
+
             }
         }
 
