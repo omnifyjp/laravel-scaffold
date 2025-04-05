@@ -2,6 +2,7 @@
 
 namespace FammSupport;
 
+use FammSupport\Console\Commands\FammGenerateTypesCommand;
 use FammSupport\Helpers\Schema;
 use FammSupport\Helpers\View;
 use FammSupport\Models\PersonalAccessToken;
@@ -32,9 +33,11 @@ class FammSupportServiceProvider extends ServiceProvider
             addSchemaPath(__DIR__ . '/../database/schemas');
         } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
         }
-
-
-        $this->commands([]);
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                FammGenerateTypesCommand::class
+            ]);
+        }
     }
 
     /**
