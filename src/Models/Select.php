@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property mixed $options
+ * @property mixed $selectName
  */
 class Select extends Model
 {

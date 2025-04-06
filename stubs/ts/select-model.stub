@@ -1,0 +1,51 @@
+// ##BODY## //
+
+class ModelNameModel {
+    private readonly data: typeof ModelNameData;
+
+    constructor() {
+        this.data = ModelNameData;
+    }
+
+    getAll(): GlobalPrefectureType[] {
+        return Object.values(this.data as Record<string, GlobalPrefectureType>);
+    }
+
+
+    // Find by ID
+    findById(id: number): ModelNameType | undefined {
+        const all = this.getAll();
+        for (let i = 0; i < all.length; i++) {
+            if (all[i].id === id) {
+                return all[i];
+            }
+        }
+        return undefined;
+    }
+
+    // Find by value
+    findByValue(value: ModelNameValue): ModelNameType | undefined {
+        const all = this.getAll();
+        for (let i = 0; i < all.length; i++) {
+            if (all[i].value === value) {
+                return all[i];
+            }
+        }
+        return undefined;
+    }
+
+    // Find by label
+    findByLabel(label: ModelNameLabel): ModelNameType | undefined {
+        const all = this.getAll();
+        for (let i = 0; i < all.length; i++) {
+            if (all[i].label === label) {
+                return all[i];
+            }
+        }
+        return undefined;
+    }
+}
+
+// Export a singleton instance
+const ModelNameSelect = new ModelNameModel();
+export default ModelNameSelect

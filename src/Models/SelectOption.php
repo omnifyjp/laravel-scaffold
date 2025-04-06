@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property mixed $value
+ * @property mixed $id
+ * @property mixed $label
  */
 class SelectOption extends Model
 {
