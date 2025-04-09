@@ -4,15 +4,6 @@
     "description": "description",
     "minimum-stability": "dev",
     "license": "proprietary",
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/Famgia/famm-core.git",
-            "options": {
-                "reference": "main"
-            }
-        }
-    ],
     "autoload": {
         "psr-4": {
             "FammSupport\\": "src/"
@@ -46,7 +37,20 @@
         ]
     },
     "require": {
-        "famm/core": "dev-main",
-        "laravel/sanctum": "^4.0"
-    }
+        "laravel/sanctum": "^4.0",
+        "ext-zip": "*",
+        "kalnoy/nestedset": "v6.x-dev",
+        "laravel/framework": "12.x-dev",
+        "symfony/yaml": "7.3.x-dev",
+        "aws/aws-sdk-php": "^3.342"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Famgia/famm-core.git",
+            "options": {
+                "reference": "main"
+            }
+        }
+    ]
 }

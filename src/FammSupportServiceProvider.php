@@ -2,15 +2,18 @@
 
 namespace FammSupport;
 
+use Exception;
 use FammSupport\Console\Commands\FammGenerateTypesCommand;
+use FammSupport\Console\Commands\FammInstallCommand;
 use FammSupport\Helpers\Schema;
-use FammSupport\Helpers\View;
 use FammSupport\Models\PersonalAccessToken;
 use FammSupport\Services\Aws\SnsService;
 use FammSupport\Services\Aws\DynamoDBService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -28,14 +31,28 @@ class FammSupportServiceProvider extends ServiceProvider
         if (File::exists(famm_path('app/bootstrap.php'))) {
             require_once famm_path('app/bootstrap.php');
         }
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/omnify.php', 'omnify'
+        );
 
-        if (function_exists('addSchemaPath')) try {
-            addSchemaPath(__DIR__ . '/../database/schemas');
-        } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
+
+        try {
+            foreach (glob(famm_path('app/Policies') . '/*.php') as $file) {
+                $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
+                $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
+                if (class_exists($modelClass) && class_exists($policyClass)) {
+                    Gate::policy($modelClass, $policyClass);
+                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
+                }
+            }
+        } catch (Exception $exception) {
         }
+
+
         if ($this->app->runningInConsole()) {
             $this->commands([
-                FammGenerateTypesCommand::class
+                FammGenerateTypesCommand::class,
+                FammInstallCommand::class
             ]);
         }
     }
@@ -44,12 +61,6 @@ class FammSupportServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if (class_exists('\FammSupport\Helpers\View')) {
-            $this->app->singleton(View::class, function (Application $app) {
-                return new View();
-            });
-        }
-
         $this->app->singleton(DynamoDBService::class, function (Application $app) {
             return new DynamoDBService();
         });

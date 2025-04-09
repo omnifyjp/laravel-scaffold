@@ -28,3 +28,5 @@ function famm_schema($entityName = null)
     if ($entityName) return famm_schema()->get($entityName);
     return app(Schema::class);
 }
+
+

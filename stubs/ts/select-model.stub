@@ -7,8 +7,8 @@ class ModelNameModel {
         this.data = ModelNameData;
     }
 
-    getAll(): GlobalPrefectureType[] {
-        return Object.values(this.data as Record<string, GlobalPrefectureType>);
+    getAll(): ModelNameType[] {
+        return Object.values(this.data as Record<string, ModelNameType>);
     }
 
 
