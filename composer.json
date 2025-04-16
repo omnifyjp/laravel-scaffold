@@ -39,10 +39,11 @@
     "require": {
         "laravel/sanctum": "^4.0",
         "ext-zip": "*",
-        "kalnoy/nestedset": "v6.x-dev",
-        "laravel/framework": "12.x-dev",
-        "symfony/yaml": "7.3.x-dev",
-        "aws/aws-sdk-php": "^3.342"
+        "laravel/framework": "^12.0",
+        "kalnoy/nestedset": "^6.0",
+        "phpoffice/phpspreadsheet": "^3.6",
+        "aws/aws-sdk-php": "^3.336",
+        "symfony/yaml": "^7.1"
     },
     "repositories": [
         {
