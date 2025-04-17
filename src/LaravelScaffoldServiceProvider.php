@@ -34,6 +34,9 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
         if (File::exists(omnify_path('app/bootstrap.php'))) {
             require_once omnify_path('app/bootstrap.php');
         }
+        if (File::isDirectory(omnify_path('database/migrations'))) {
+            $this->loadMigrationsFrom(omnify_path('database/migrations'));
+        }
 
         try {
             foreach (glob(omnify_path('app/Policies').'/*.php') as $file) {
