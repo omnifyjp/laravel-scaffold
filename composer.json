@@ -34,5 +34,11 @@
         "phpoffice/phpspreadsheet": "^3.6",
         "aws/aws-sdk-php": "^3.336",
         "symfony/yaml": "^7.1"
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/omnifyjp/laravel-scaffold.git"
+        }
+    ]
 }
