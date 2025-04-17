@@ -3,15 +3,15 @@
 namespace FammSupport;
 
 use Exception;
-use FammSupport\Console\Commands\FammGenerateTypesCommand;
-use FammSupport\Console\Commands\OmnifyInstallCommand;
-use FammSupport\Console\Commands\OmnifyLoginCommand;
-use FammSupport\Console\Commands\OmnifyProjectCreateCommand;
-use FammSupport\Console\Commands\OmnifyProjectsCommand;
-use FammSupport\Helpers\Schema;
-use FammSupport\Models\PersonalAccessToken;
-use FammSupport\Services\Aws\DynamoDBService;
-use FammSupport\Services\Aws\SnsService;
+use OmnifyJP\LaravelScaffold\Console\Commands\FammGenerateTypesCommand;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyInstallCommand;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyLoginCommand;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectCreateCommand;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectsCommand;
+use OmnifyJP\LaravelScaffold\Helpers\Schema;
+use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
+use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
+use OmnifyJP\LaravelScaffold\Services\Aws\SnsService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;

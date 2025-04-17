@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport\Services;
+namespace OmnifyJP\LaravelScaffold\Services;
 
 use Exception;
 use Illuminate\Support\Carbon;

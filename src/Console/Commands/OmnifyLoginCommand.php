@@ -2,7 +2,7 @@
 
 /** @noinspection LaravelFunctionsInspection */
 
-namespace FammSupport\Console\Commands;
+namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
 use Carbon\Carbon;
 use Exception;

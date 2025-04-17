@@ -1,8 +1,8 @@
 <?php
 
-namespace FammSupport\Models\Traits;
+namespace OmnifyJP\LaravelScaffold\Models\Traits;
 
-use FammSupport\Helpers\Schema;
+use OmnifyJP\LaravelScaffold\Helpers\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;

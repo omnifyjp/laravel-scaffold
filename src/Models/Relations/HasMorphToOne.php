@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport\Models\Relations;
+namespace OmnifyJP\LaravelScaffold\Models\Relations;
 
 trait HasMorphToOne
 {

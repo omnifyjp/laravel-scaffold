@@ -1,5 +1,5 @@
 <?php
 
-namespace FammSupport\Models;
+namespace OmnifyJP\LaravelScaffold\Models;
 
 class PersonalAccessToken extends \Laravel\Sanctum\PersonalAccessToken {}

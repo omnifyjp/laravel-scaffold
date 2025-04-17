@@ -1,8 +1,8 @@
 <?php
 
-namespace FammSupport\Helpers;
+namespace OmnifyJP\LaravelScaffold\Helpers;
 
-use FammSupport\DynamicSchemaProcessor;
+use OmnifyJP\LaravelScaffold\DynamicSchemaProcessor;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 

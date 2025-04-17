@@ -1,8 +1,8 @@
 <?php
 
-namespace FammSupport\Http\Controllers\Api;
+namespace OmnifyJP\LaravelScaffold\Http\Controllers\Api;
 
-use FammSupport\Models\Select;
+use OmnifyJP\LaravelScaffold\Models\Select;
 
 class SelectController
 {

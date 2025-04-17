@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport\Helpers;
+namespace OmnifyJP\LaravelScaffold\Helpers;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;

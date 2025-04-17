@@ -1,10 +1,10 @@
 <?php
 
-namespace FammSupport\Models;
+namespace OmnifyJP\LaravelScaffold\Models;
 
 use Exception;
-use FammSupport\Models\Traits\UseQuery;
-use FammSupport\Services\SpreadsheetHelper;
+use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
+use OmnifyJP\LaravelScaffold\Services\SpreadsheetHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;

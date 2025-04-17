@@ -1,9 +1,9 @@
 <?php
 
-namespace FammSupport\Http\Controllers;
+namespace OmnifyJP\LaravelScaffold\Http\Controllers;
 
 use Exception;
-use FammSupport\Helpers\Schema;
+use OmnifyJP\LaravelScaffold\Helpers\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Controller;
 use Psr\Container\ContainerExceptionInterface;

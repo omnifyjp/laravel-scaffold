@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport\Http\Controllers\Api;
+namespace OmnifyJP\LaravelScaffold\Http\Controllers\Api;
 
 class ObjectController
 {

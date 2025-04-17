@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport\Services\Aws;
+namespace OmnifyJP\LaravelScaffold\Services\Aws;
 
 use Aws\Lambda\LambdaClient;
 

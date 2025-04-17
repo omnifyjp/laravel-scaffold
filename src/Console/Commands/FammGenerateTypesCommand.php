@@ -1,8 +1,8 @@
 <?php
 
-namespace FammSupport\Console\Commands;
+namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
-use FammSupport\Services\TypescriptModelBuilder;
+use OmnifyJP\LaravelScaffold\Services\TypescriptModelBuilder;
 use Illuminate\Console\Command;
 
 class FammGenerateTypesCommand extends Command

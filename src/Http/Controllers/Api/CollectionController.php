@@ -1,9 +1,9 @@
 <?php
 
-namespace FammSupport\Http\Controllers\Api;
+namespace OmnifyJP\LaravelScaffold\Http\Controllers\Api;
 
-use FammSupport\Http\Controllers\BaseController;
-use FammSupport\Http\Resources\CollectionResource;
+use OmnifyJP\LaravelScaffold\Http\Controllers\BaseController;
+use OmnifyJP\LaravelScaffold\Http\Resources\CollectionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;

@@ -1,8 +1,8 @@
 <?php
 
-namespace FammSupport\Models;
+namespace OmnifyJP\LaravelScaffold\Models;
 
-use FammSupport\Models\Traits\UseQuery;
+use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

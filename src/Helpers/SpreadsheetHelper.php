@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport\Helpers;
+namespace OmnifyJP\LaravelScaffold\Helpers;
 
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace FammSupport\Services;
+namespace OmnifyJP\LaravelScaffold\Services;
 
 use Exception;
-use FammSupport\Services\Aws\ApiGatewayManagementApiClient;
-use FammSupport\Services\Aws\DynamoDBService;
+use OmnifyJP\LaravelScaffold\Services\Aws\ApiGatewayManagementApiClient;
+use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
 use Illuminate\Support\Facades\Log;
 
 class WebsocketPublisher

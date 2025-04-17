@@ -1,8 +1,8 @@
 <?php
 
-use FammSupport\Http\Controllers\Api\CollectionController;
-use FammSupport\Http\Controllers\Api\ObjectController;
-use FammSupport\Http\Controllers\Api\SelectController;
+use OmnifyJP\LaravelScaffold\Http\Controllers\Api\CollectionController;
+use OmnifyJP\LaravelScaffold\Http\Controllers\Api\ObjectController;
+use OmnifyJP\LaravelScaffold\Http\Controllers\Api\SelectController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web'])->group(function () {
