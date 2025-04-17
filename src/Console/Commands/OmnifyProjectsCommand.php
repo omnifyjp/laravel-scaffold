@@ -38,7 +38,7 @@ class OmnifyProjectsCommand extends Command
         }
 
         $this->table(
-            ['ID', 'Name', 'Secret', 'Created At'],
+            ['ID', 'Name', 'Secret', 'Build', 'Created At'],
             $this->formatProjectsForTable($projects)
         );
 
@@ -92,6 +92,7 @@ class OmnifyProjectsCommand extends Command
                 'code' => $project['code'] ?? 'N/A',
                 'name' => $project['name'] ?? 'N/A',
                 'secret' => $project['secret'] ?? 'N/A',
+                'build' => $project['build'] ?? 'N/A',
                 'created_at' => isset($project['created_at'])
                     ? Carbon::parse($project['created_at'])->format('Y-m-d H:i')
                     : 'N/A',
