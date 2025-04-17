@@ -35,7 +35,7 @@ class OmnifyProjectsCommand extends Command
         }
 
         $this->table(
-            ['ID', 'Name', 'Status', 'Created At'],
+            ['ID', 'Name', 'Secret', 'Created At'],
             $this->formatProjectsForTable($projects)
         );
 
