@@ -17,23 +17,68 @@ class OmnifyInstallCommand extends Command
 
     protected $description = 'Command description';
 
+    // Path to the .project file
+    protected $projectFilePath;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->projectFilePath = omnify_path('.project');
+    }
 
     public function handle(): void
     {
         if (!OmnifyLoginCommand::verify()) {
-            $this->info('No authentication token found.');
+            $this->error('No valid authentication token found. Please run omnify:login to login.');
             return;
         }
 
         $seed = $this->option('seed');
         $fresh = $this->option('fresh');
         $migrate = $this->option('migrate');
-        if (!($omnify_key = config('omnify.omnify_key'))) {
-            $this->error('omnify.omnify_keyが見つかりませんでした。');
-            return;
-        }
-        if (!($omnify_secret = config('omnify.omnify_secret'))) {
-            $this->error('omnify.omnify_secretが見つかりませんでした。');
+
+        // Load project data from .project file if it exists
+        $projectData = $this->loadProjectData();
+        $omnify_key = $projectData['omnify_key'] ?? null;
+        $omnify_secret = $projectData['omnify_secret'] ?? null;
+
+        // Check if project data exists
+        if (!$omnify_key) {
+            $this->warn('Project data not found.');
+
+            // Get project list and let user select one
+            $projects = $this->getProjects();
+
+            if (empty($projects)) {
+                $this->error('Failed to retrieve projects or no projects available.');
+                return;
+            }
+
+            // Format projects for selection
+            $choices = [];
+            foreach ($projects as $index => $project) {
+                $choices[$index + 1] = $project['code'] . ' - ' . $project['name'];
+            }
+
+            // Let user select a project
+            $selectedIndex = $this->choice('Select a project to use', $choices);
+            $selectedProjectIndex = array_search($selectedIndex, $choices);
+            $selectedProject = $projects[$selectedProjectIndex - 1];
+
+            // Set the selected project's code and secret
+            $omnify_key = $selectedProject['code'];
+            $omnify_secret = $selectedProject['secret'];
+
+            // Save project data to .project file
+            $this->saveProjectData([
+                'omnify_key' => $omnify_key,
+                'omnify_secret' => $omnify_secret,
+                'project_name' => $selectedProject['name']
+            ]);
+
+            $this->info("Project set to: {$selectedProject['name']} ({$omnify_key})");
+        } else if (!$omnify_secret) {
+            $this->error('Project secret not found in .project file.');
             return;
         }
 
@@ -47,7 +92,7 @@ class OmnifyInstallCommand extends Command
         $tempZipFile = omnify_path('.temp/temp.zip');
 
         try {
-            $this->info("処理中...");
+            $this->info("Processing...");
             $response = Http::timeout(600)
                 ->acceptJson()
                 ->withQueryParameters(['fresh' => $fresh])
@@ -56,41 +101,41 @@ class OmnifyInstallCommand extends Command
                 ->post($url);
             if ($response->failed()) {
                 $body = json_decode($response->body(), 1);
-                $this->error("失敗しました" );
+                $this->error("Failed" );
                 $this->warn(json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
                 return;
             }
 
-            // 一時ファイルとして保存
+            // Save as temporary file
             File::put($tempZipFile, $response->body());
             $zip = new ZipArchive;
             if ($zip->open($tempZipFile) === TRUE) {
                 $zip->extractTo($outputDir);
                 $zip->close();
-                $this->info("解凍が完了しました: {$outputDir}");
+                $this->info("Extraction completed: {$outputDir}");
             } else {
-                $this->error("ZIPファイルを開けませんでした。");
+                $this->error("Could not open ZIP file.");
                 return;
             }
-            // 一時ファイルの削除
+            // Delete temporary file
             File::delete($tempZipFile);
 
-            // filelistの存在確認と処理
+            // Check and process filelist
             $filelistPath = $outputDir . '/filelist.json';
             if (!File::exists($filelistPath)) {
-                $this->error("filelist.jsonが見つかりませんでした。");
+                $this->error("filelist.json not found.");
                 return;
             }
 
 
             if ($fresh) {
-                $this->info("ファイルを削除中...");
+                $this->info("Deleting files...");
                 File::deleteDirectory(omnify_path("database"));
                 File::deleteDirectory(omnify_path("app/Models/Base"));
                 File::deleteDirectory(omnify_path("ts/Models/Base"));
             }
 
-            // ファイルを実際のディレクトリに移動
+            // Move files to actual directory
             $this->moveFilesBasedOnFileList($filelistPath, $outputDir, $baseDir);
 
             File::deleteDirectory($outputDir);
@@ -108,16 +153,87 @@ class OmnifyInstallCommand extends Command
             }
 
 
-            $this->info("処理が完了しました！");
+            $this->info("Process completed successfully!");
             return;
         } catch (\Exception $e) {
-            $this->error("エラー発生: " . $e->getMessage());
+            $this->error("Error occurred: " . $e->getMessage());
 
-            // 一時ファイルが存在する場合は削除
+            // Delete temporary file if it exists
             if (File::exists($tempZipFile)) {
                 File::delete($tempZipFile);
             }
             return;
+        }
+    }
+
+    /**
+     * Get the list of projects from the API
+     *
+     * @return array|null
+     */
+    private function getProjects(): ?array
+    {
+        $authFile = omnify_path('.credentials');
+        $content = File::get($authFile);
+        $decoded = json_decode($content, true);
+        $token = $decoded['token'] ?? '';
+
+        // Remove timestamp for API request
+        $tokenParts = explode('|', $token);
+        array_pop($tokenParts);
+        $accessToken = implode('|', $tokenParts);
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->acceptJson()
+                ->get(OmnifyLoginCommand::ENDPOINT . '/api/projects');
+
+            if ($response->successful()) {
+                return $response->json()['data'] ?? $response->json();
+            }
+
+            $this->error('API Error: ' . ($response->json()['message'] ?? 'Unknown error'));
+            return null;
+        } catch (\Exception $e) {
+            $this->error('Connection Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Load project data from .project file
+     *
+     * @return array
+     */
+    private function loadProjectData(): array
+    {
+        if (File::exists($this->projectFilePath)) {
+            try {
+                $content = File::get($this->projectFilePath);
+                return json_decode($content, true) ?? [];
+            } catch (\Exception $e) {
+                $this->warn('Failed to read .project file: ' . $e->getMessage());
+                return [];
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Save project data to .project file
+     *
+     * @param array $data
+     * @return void
+     */
+    private function saveProjectData(array $data): void
+    {
+        try {
+            $jsonContent = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            File::put($this->projectFilePath, $jsonContent);
+            $this->info('Project data saved to .project file.');
+        } catch (\Exception $e) {
+            $this->error('Failed to save project data: ' . $e->getMessage());
         }
     }
 
@@ -145,7 +261,7 @@ class OmnifyInstallCommand extends Command
     }
 
     /**
-     * filelistに基づいてファイルを移動する
+     * Move files based on filelist
      */
     protected function moveFilesBasedOnFileList(string $filelistPath, string $sourceDir, string $targetDir): void
     {
@@ -153,7 +269,7 @@ class OmnifyInstallCommand extends Command
         $filelist = json_decode($filelistContent, true);
 
         if (!is_array($filelist)) {
-            $this->error("filelist.jsonの形式が無効です。");
+            $this->error("Invalid format of filelist.json.");
             return;
         }
 
@@ -162,36 +278,35 @@ class OmnifyInstallCommand extends Command
 
         foreach ($filelist as $fileInfo) {
             if (!isset($fileInfo['path']) || !isset($fileInfo['replace'])) {
-                $this->warn("無効なファイル情報がスキップされました。");
+                $this->warn("Invalid file information was skipped.");
                 continue;
             }
 
             $sourcePath = $sourceDir . '/' . $fileInfo['path'];
             $targetPath = $targetDir . '/' . $fileInfo['path'];
 
-            // ファイルが存在しない場合はスキップ
+            // Skip if file does not exist
             if (!File::exists($sourcePath)) {
-                $this->warn("ファイルが見つかりません: " . $fileInfo['path']);
+                $this->warn("File not found: " . $fileInfo['path']);
                 continue;
             }
 
-            // ターゲットディレクトリの作成
+            // Create target directory
             $targetDirectory = dirname($targetPath);
             if (!File::exists($targetDirectory)) {
                 File::makeDirectory($targetDirectory, 0755, true, true);
             }
 
-            // replaceフラグに基づいてファイルを移動
+            // Move files based on replace flag
             if ($fileInfo['replace'] || !File::exists($targetPath)) {
                 File::copy($sourcePath, $targetPath, true);
                 $filesProcessed++;
-                $this->info("ファイルをコピーしました: " . $fileInfo['path']);
+                $this->info("File copied: " . $fileInfo['path']);
             } else {
                 $filesSkipped++;
-                $this->warn("ファイルはスキップされました: " . $fileInfo['path']);
+                $this->warn("File skipped: " . $fileInfo['path']);
             }
         }
-        $this->info("ファイル処理完了: 処理済み {$filesProcessed} 件、スキップ {$filesSkipped} 件");
+        $this->info("File processing completed: {$filesProcessed} processed, {$filesSkipped} skipped");
     }
-
 }

@@ -6,6 +6,7 @@ use Exception;
 use FammSupport\Console\Commands\FammGenerateTypesCommand;
 use FammSupport\Console\Commands\OmnifyInstallCommand;
 use FammSupport\Console\Commands\OmnifyLoginCommand;
+use FammSupport\Console\Commands\OmnifyProjectCreateCommand;
 use FammSupport\Console\Commands\OmnifyProjectsCommand;
 use FammSupport\Helpers\Schema;
 use FammSupport\Models\PersonalAccessToken;
@@ -55,6 +56,7 @@ class FammSupportServiceProvider extends ServiceProvider
             $this->commands([
                 OmnifyLoginCommand::class,
                 OmnifyProjectsCommand::class,
+                OmnifyProjectCreateCommand::class,
 
                 FammGenerateTypesCommand::class,
                 OmnifyInstallCommand::class
