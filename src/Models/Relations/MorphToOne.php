@@ -14,6 +14,7 @@ class MorphToOne extends MorphToMany
                 $results->first()
             );
         }
+
         return $models;
     }
 }

@@ -35,22 +35,20 @@ class FammSupportServiceProvider extends ServiceProvider
             require_once omnify_path('app/bootstrap.php');
         }
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/omnify.php', 'omnify'
+            __DIR__.'/../config/omnify.php', 'omnify'
         );
 
-
         try {
-            foreach (glob(omnify_path('app/Policies') . '/*.php') as $file) {
-                $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
-                $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(omnify_path('app/Policies').'/*.php') as $file) {
+                $policyClass = 'FammApp\\Policies\\'.basename($file, '.php');
+                $modelClass = 'FammApp\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
+                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
                 }
             }
         } catch (Exception $exception) {
         }
-
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -59,25 +57,23 @@ class FammSupportServiceProvider extends ServiceProvider
                 OmnifyProjectCreateCommand::class,
 
                 FammGenerateTypesCommand::class,
-                OmnifyInstallCommand::class
+                OmnifyInstallCommand::class,
             ]);
         }
     }
 
-    /**
-     */
     public function register(): void
     {
         $this->app->singleton(DynamoDBService::class, function (Application $app) {
-            return new DynamoDBService();
+            return new DynamoDBService;
         });
 
         $this->app->singleton(SnsService::class, function (Application $app) {
-            return new SnsService();
+            return new SnsService;
         });
 
         $this->app->singleton(Schema::class, function (Application $app) {
-            return new Schema();
+            return new Schema;
         });
 
         $this->loadRoutesFrom(support_path('routes/support.php'));

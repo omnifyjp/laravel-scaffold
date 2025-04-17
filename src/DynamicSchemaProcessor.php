@@ -2,10 +2,10 @@
 
 namespace FammSupport;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
 class DynamicSchemaProcessor
@@ -57,14 +57,15 @@ class DynamicSchemaProcessor
     public function processVariable(string $value): array|string|null
     {
         $pattern = '/{{\$(\w+):(.+)}}/';
-        if (!preg_match($pattern, $value, $matches)) {
+        if (! preg_match($pattern, $value, $matches)) {
             return $value;
         }
         $type = $matches[1];
         $key = $matches[2];
-        if (!isset($this->variableProcessors[$type])) {
+        if (! isset($this->variableProcessors[$type])) {
             return $value;
         }
+
         return preg_replace($pattern, $this->variableProcessors[$type]($key), $value);
     }
 
@@ -78,5 +79,4 @@ class DynamicSchemaProcessor
 
         return $schema;
     }
-
 }

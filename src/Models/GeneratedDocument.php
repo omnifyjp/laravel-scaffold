@@ -54,7 +54,7 @@ class GeneratedDocument extends Model
     ];
 
     protected $casts = [
-        'parameters' => 'json'
+        'parameters' => 'json',
     ];
 
     public function datasource(): HasMany
@@ -134,8 +134,8 @@ class GeneratedDocument extends Model
                             $value = $values[$variableName]['value'] ?? null;
                             /** @var Drawing $newDrawing */
                             $newDrawing = clone $drawing;
-                            $newDrawing->setName($matches[1][0] . '_REPLACED');
-                            $newDrawing->setDescription($matches[1][0] . '_REPLACED');
+                            $newDrawing->setName($matches[1][0].'_REPLACED');
+                            $newDrawing->setDescription($matches[1][0].'_REPLACED');
 
                             if ($images[$variableName]['action_type'] == DocumentField::ACTION_TYPE_ACTION_TYPE_REPLACE) {
                                 $newDrawing->setPath(public_path('avatar.png'));
@@ -176,7 +176,7 @@ class GeneratedDocument extends Model
                     if (preg_match_all($pattern, $cellValue, $matches)) {
                         foreach ($matches[1] as $variableName) {
                             $newValue = str_replace(
-                                '{{' . $variableName . '}}',
+                                '{{'.$variableName.'}}',
                                 $values[$variableName]['value'] ?? null,
                                 $cellValue
                             );
@@ -190,15 +190,15 @@ class GeneratedDocument extends Model
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->setIncludeCharts(true);
-        $dir = 'documents/' . ($this->created_at ?? now())->format('Ymd') . '/DOC_' . $this->document->id . '/NO_' . $this->id;
+        $dir = 'documents/'.($this->created_at ?? now())->format('Ymd').'/DOC_'.$this->document->id.'/NO_'.$this->id;
         Storage::disk('local')->makeDirectory($dir);
-        $path = $dir . '/' . md5($this->id) . '.xlsx';
+        $path = $dir.'/'.md5($this->id).'.xlsx';
         $writer->save(Storage::disk('local')->path($path));
         $this->file()->delete();
         $file = $this->file()->create([
             'path' => $path,
             'disk' => 'local',
-            'name' => $this->name . '.xlsx',
+            'name' => $this->name.'.xlsx',
             'mime' => Storage::disk('local')->mimeType($path),
         ]);
         $file->updated_at = now();

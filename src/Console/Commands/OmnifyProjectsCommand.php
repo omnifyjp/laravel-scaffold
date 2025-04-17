@@ -17,8 +17,9 @@ class OmnifyProjectsCommand extends Command
 
     public function handle(): int
     {
-        if (!OmnifyLoginCommand::verify()) {
+        if (! OmnifyLoginCommand::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
+
             return 1;
         }
 
@@ -26,11 +27,13 @@ class OmnifyProjectsCommand extends Command
 
         if (empty($projects)) {
             $this->error('Failed to retrieve projects or no projects available.');
+
             return 1;
         }
 
         if ($this->option('json')) {
             $this->line(json_encode($projects, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
@@ -44,8 +47,6 @@ class OmnifyProjectsCommand extends Command
 
     /**
      * Get the list of projects from the API
-     *
-     * @return array|null
      */
     private function getProjects(): ?array
     {
@@ -62,25 +63,24 @@ class OmnifyProjectsCommand extends Command
         try {
             $response = Http::withToken($accessToken)
                 ->acceptJson()
-                ->get(self::$endpoint . '/api/projects');
+                ->get(self::$endpoint.'/api/projects');
 
             if ($response->successful()) {
                 return $response->json()['data'] ?? $response->json();
             }
 
-            $this->error('API Error: ' . ($response->json()['message'] ?? 'Unknown error'));
+            $this->error('API Error: '.($response->json()['message'] ?? 'Unknown error'));
+
             return null;
         } catch (\Exception $e) {
-            $this->error('Connection Error: ' . $e->getMessage());
+            $this->error('Connection Error: '.$e->getMessage());
+
             return null;
         }
     }
 
     /**
      * Format projects data for console table output
-     *
-     * @param array $projects
-     * @return array
      */
     private function formatProjectsForTable(array $projects): array
     {
@@ -88,7 +88,7 @@ class OmnifyProjectsCommand extends Command
 
         foreach ($projects as $project) {
             $tableData[] = [
-//                'id' => $project['id'] ?? 'N/A',
+                //                'id' => $project['id'] ?? 'N/A',
                 'code' => $project['code'] ?? 'N/A',
                 'name' => $project['name'] ?? 'N/A',
                 'secret' => $project['secret'] ?? 'N/A',

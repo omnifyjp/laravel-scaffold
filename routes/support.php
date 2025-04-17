@@ -14,9 +14,6 @@ Route::middleware(['web'])->group(function () {
         Route::get('objects/{objectName}/{propertyName}', [ObjectController::class, 'getProperty'])->name('api.objects.get-property');
         Route::post('objects/{objectName}/{propertyName}/upload', [ObjectController::class, 'upload'])->name('api.objects.upload');
 
-        /**
-         *
-         */
         Route::get('data/{objectName}', [CollectionController::class, 'index'])->name('api.objects.index');
 
     });

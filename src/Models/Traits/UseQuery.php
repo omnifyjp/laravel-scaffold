@@ -42,8 +42,7 @@ trait UseQuery
 
         foreach ($schema['properties'] as $item) {
             if ($item['type'] == Schema::TYPE_ASSOCIATION) {
-                $withs[$item['propertyName']] = function ($query) {
-                };
+                $withs[$item['propertyName']] = function ($query) {};
             }
         }
 
@@ -60,17 +59,14 @@ trait UseQuery
         $schema = static::schema();
         foreach ($schema['properties'] as $item) {
             if ($item['type'] == Schema::TYPE_SELECT) {
-                $withs[$item['propertyName']] = function ($query) {
-                };
+                $withs[$item['propertyName']] = function ($query) {};
             } elseif ($item['type'] == Schema::TYPE_LOOKUP) {
-                $withs[$item['propertyName']] = function ($query) {
-                };
+                $withs[$item['propertyName']] = function ($query) {};
             }
             if (isset($item['fields']) && is_array($item['fields'])) {
                 foreach ($item['fields'] as $field) {
                     if ($field['type'] == Schema::TYPE_SELECT) {
-                        $withs[$field['propertyName']] = function ($query) {
-                        };
+                        $withs[$field['propertyName']] = function ($query) {};
                     }
                 }
             }

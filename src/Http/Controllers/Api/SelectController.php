@@ -12,12 +12,14 @@ class SelectController
         foreach (Select::with('options')->get() as $item) {
             $selects[$item->selectName] = $this->transform($item);
         }
+
         return $selects;
     }
 
     public function show($selectName): array
     {
         $select = Select::with('options')->where('selectName', $selectName)->firstOrFail();
+
         return $this->transform($select);
     }
 
@@ -55,9 +57,9 @@ class SelectController
         }
 
         return [
-            "displayName" => $item['displayName'],
-            "description" => $item['description'],
-            "options" => $output
+            'displayName' => $item['displayName'],
+            'description' => $item['description'],
+            'options' => $output,
         ];
     }
 }

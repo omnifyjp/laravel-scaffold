@@ -130,7 +130,7 @@ class Document extends Model
         if ($this->generation_type == 'COMBINATION') {
             foreach ($this->combination_parameters as $combination_target) {
                 if ($combination_target->type == DocumentCombinationParameter::TYPE_ATTRIBUTE) {
-                    if (!isset($schema['attributes'][$combination_target->propertyName])) {
+                    if (! isset($schema['attributes'][$combination_target->propertyName])) {
                         throw new Exception('Attribute not found');
                     }
                     if ($baseModel->{$combination_target->propertyName}() instanceof BelongsTo) {
@@ -141,7 +141,7 @@ class Document extends Model
                 }
             }
 
-//            dd($this->getDocumentCriteria($targets));
+            //            dd($this->getDocumentCriteria($targets));
             foreach ($this->getDocumentCriteria($targets) as $items) {
                 $keys = [];
                 $subtitle = [];
@@ -150,7 +150,7 @@ class Document extends Model
                 foreach ($items as $key => $val) {
                     $keys[$key] = $val->id;
                     $subtitle[$key] = $val->_title;
-                    $description .= $key . ':' . $val->_title . "\n";
+                    $description .= $key.':'.$val->_title."\n";
                     $parameters[$key] = $val->_title;
                 }
                 ksort($keys);
@@ -164,12 +164,12 @@ class Document extends Model
                     'morph_id' => $baseModel->id,
                     'key' => $key,
                 ], [
-                    'name' => $this->name . '【' . implode('-', $subtitle) . '】',
+                    'name' => $this->name.'【'.implode('-', $subtitle).'】',
                     'description' => $description,
                     'parameters' => $parameters,
                 ]);
                 $generated_document->update([
-                    'name' => $this->name . '【' . implode('-', $subtitle) . '】',
+                    'name' => $this->name.'【'.implode('-', $subtitle).'】',
                     'description' => $description,
                 ]);
                 if ($generated_document->trashed()) {
@@ -216,13 +216,13 @@ class Document extends Model
 
             foreach ($result as $item) {
                 foreach ($values as $value) {
-                    if ($value != null)
+                    if ($value != null) {
                         $temp[] = $item + [$key => $value];
+                    }
                 }
             }
             $result = $temp;
         }
-        
 
         return $result;
     }

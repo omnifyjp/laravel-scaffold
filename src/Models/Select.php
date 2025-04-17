@@ -27,7 +27,7 @@ class Select extends Model
         'description',
         'autoCreated',
         'properties',
-        'sort'
+        'sort',
     ];
 
     protected $hidden = [
@@ -41,18 +41,20 @@ class Select extends Model
     protected $casts = [
         'isEnabled' => 'boolean',
         'autoCreated' => 'boolean',
-        'properties' => 'json'
+        'properties' => 'json',
     ];
 
     public static function labelToValue($name, $label)
     {
         $select = static::query()->where('selectName', $name)->first();
+
         return $select?->options()->where('label', $label)->first() ?? null;
     }
 
     public static function getOptions($name)
     {
         $select = static::query()->where('selectName', $name)->first();
+
         return $select?->options;
     }
 
@@ -66,8 +68,7 @@ class Select extends Model
         return Select::with('options')->select('selectName', 'displayName', 'description')->get();
     }
 
-
-    static function retrieve($name): array
+    public static function retrieve($name): array
     {
         $select = static::with(['options' => function ($query) {
             $query->orderBy('sort');
@@ -84,10 +85,11 @@ class Select extends Model
                 ];
             }
         }
+
         return [
-            "displayName" => $select['displayName'],
-            "description" => $select['description'],
-            "options" => $options
+            'displayName' => $select['displayName'],
+            'description' => $select['description'],
+            'options' => $options,
         ];
     }
 }

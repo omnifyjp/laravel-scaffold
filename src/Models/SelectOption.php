@@ -23,11 +23,11 @@ class SelectOption extends Model
         'description',
         'isEnabled',
         'autoCreated',
-        'properties'
+        'properties',
     ];
 
     protected $hidden = [
-//        'id',
+        //        'id',
         'pivot',
         'selectName',
         'autoCreated',
@@ -58,5 +58,4 @@ class SelectOption extends Model
             ->where('value', $value)
             ->first();
     }
-
 }

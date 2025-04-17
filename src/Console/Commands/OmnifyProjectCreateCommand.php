@@ -17,8 +17,9 @@ class OmnifyProjectCreateCommand extends Command
 
     public function handle(): int
     {
-        if (!OmnifyLoginCommand::verify()) {
+        if (! OmnifyLoginCommand::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
+
             return 1;
         }
 
@@ -27,6 +28,7 @@ class OmnifyProjectCreateCommand extends Command
 
         if (empty($code) || empty($name)) {
             $this->error('Project code and name cannot be empty.');
+
             return 1;
         }
 
@@ -36,11 +38,13 @@ class OmnifyProjectCreateCommand extends Command
 
         if (empty($result)) {
             $this->error('Failed to create project.');
+
             return 1;
         }
 
         if ($this->option('json')) {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
@@ -63,10 +67,6 @@ class OmnifyProjectCreateCommand extends Command
 
     /**
      * Create a new project via the API
-     *
-     * @param string $code
-     * @param string $name
-     * @return array|null
      */
     private function createProject(string $code, string $name): ?array
     {
@@ -83,19 +83,21 @@ class OmnifyProjectCreateCommand extends Command
         try {
             $response = Http::withToken($accessToken)
                 ->acceptJson()
-                ->post(self::$endpoint . '/api/create-project', [
+                ->post(self::$endpoint.'/api/create-project', [
                     'code' => $code,
-                    'name' => $name
+                    'name' => $name,
                 ]);
 
             if ($response->successful()) {
                 return $response->json()['data'] ?? $response->json();
             }
 
-            $this->error('API Error: ' . ($response->json()['message'] ?? 'Unknown error'));
+            $this->error('API Error: '.($response->json()['message'] ?? 'Unknown error'));
+
             return null;
         } catch (\Exception $e) {
-            $this->error('Connection Error: ' . $e->getMessage());
+            $this->error('Connection Error: '.$e->getMessage());
+
             return null;
         }
     }

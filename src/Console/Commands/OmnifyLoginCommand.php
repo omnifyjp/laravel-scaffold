@@ -1,4 +1,6 @@
-<?php /** @noinspection LaravelFunctionsInspection */
+<?php
+
+/** @noinspection LaravelFunctionsInspection */
 
 namespace FammSupport\Console\Commands;
 
@@ -13,20 +15,21 @@ class OmnifyLoginCommand extends Command
     protected $signature = 'omnify:login';
 
     protected $description = 'Command description';
-//    const ENDPOINT = 'http://famm-service.test';
+    //    const ENDPOINT = 'http://famm-service.test';
 
     const ENDPOINT = 'https://core.omnify.jp';
 
-
     public function handle()
     {
-        if (!static::tokenExists()) {
+        if (! static::tokenExists()) {
             $this->info('No authentication token found.');
             if ($this->promptLogin()) {
                 $this->info('Login successful. Token saved.');
+
                 return 0;
             } else {
                 $this->error('Login failed.');
+
                 return 1;
             }
         }
@@ -34,26 +37,20 @@ class OmnifyLoginCommand extends Command
         $this->info('Authentication token exists.');
     }
 
-
-    /**
-     * @return bool
-     */
-    static function tokenExists(): bool
+    public static function tokenExists(): bool
     {
         $authFile = omnify_path('.credentials');
-        if (!File::exists($authFile)) {
+        if (! File::exists($authFile)) {
             return false;
         }
         $content = File::get($authFile);
         $decoded = json_decode($content, true);
 
-        return !empty($decoded['token']);
+        return ! empty($decoded['token']);
     }
 
     /**
      * Prompt user for login credentials and get token
-     *
-     * @return bool
      */
     private function promptLogin(): bool
     {
@@ -62,6 +59,7 @@ class OmnifyLoginCommand extends Command
 
         if (empty($email) || empty($password)) {
             $this->error('Email and password are required.');
+
             return false;
         }
 
@@ -70,12 +68,10 @@ class OmnifyLoginCommand extends Command
 
     /**
      * Verify if the current token is valid by checking the /me endpoint
-     *
-     * @return bool
      */
     public static function verify(): bool
     {
-        if (!static::tokenExists()) {
+        if (! static::tokenExists()) {
             return false;
         }
 
@@ -95,7 +91,7 @@ class OmnifyLoginCommand extends Command
             $accessToken = implode('|', $tokenParts);
 
             if (is_numeric($expiresAt)) {
-                $expiryDate = Carbon::createFromTimestamp((int)$expiresAt);
+                $expiryDate = Carbon::createFromTimestamp((int) $expiresAt);
                 $now = Carbon::now();
 
                 if ($now->gt($expiryDate)) {
@@ -108,28 +104,25 @@ class OmnifyLoginCommand extends Command
 
             $response = Http::withToken($accessToken)
                 ->acceptJson()
-                ->get(self::ENDPOINT . '/api/me');
+                ->get(self::ENDPOINT.'/api/me');
 
             return $response->successful() && isset($response->json()['id']);
         } catch (Exception $e) {
-                File::delete($authFile);
+            File::delete($authFile);
+
             return false;
         }
     }
 
     /**
      * Create token by calling API endpoint
-     *
-     * @param string $email
-     * @param string $password
-     * @return bool
      */
     private function createToken(string $email, string $password): bool
     {
         try {
             $response = Http::asForm()
                 ->acceptJson()
-                ->post(self::ENDPOINT . '/api/create-token', [
+                ->post(self::ENDPOINT.'/api/create-token', [
                     'email' => $email,
                     'password' => $password,
                 ]);
@@ -137,33 +130,30 @@ class OmnifyLoginCommand extends Command
             if ($response->successful()) {
                 $data = $response->json();
                 if (isset($data['access_token'])) {
-                    $this->saveToken($data['access_token'] . "|" . $data['expires_at']);
+                    $this->saveToken($data['access_token'].'|'.$data['expires_at']);
+
                     return true;
                 }
             }
 
-            $this->error('API Error: ' . ($response->json()['message'] ?? 'Unknown error'));
+            $this->error('API Error: '.($response->json()['message'] ?? 'Unknown error'));
+
             return false;
         } catch (Exception $e) {
-            $this->error('Connection Error: ' . $e->getMessage());
+            $this->error('Connection Error: '.$e->getMessage());
+
             return false;
         }
     }
 
-
-    /**
-     * @param string $token
-     * @return void
-     */
     private function saveToken(string $token): void
     {
         $authFile = omnify_path('.credentials');
-        if (!File::exists(omnify_path())) {
+        if (! File::exists(omnify_path())) {
             File::makeDirectory(omnify_path(), 0755, true);
         }
 
         $content = json_encode(['token' => $token]);
         File::put($authFile, $content);
     }
-
 }

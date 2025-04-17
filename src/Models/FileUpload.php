@@ -34,7 +34,7 @@ class FileUpload extends Model
         'disk',
         'path',
         'updated_at',
-        'expired_at'
+        'expired_at',
     ];
 
     protected $hidden = [
@@ -61,6 +61,7 @@ class FileUpload extends Model
             ]);
         } elseif ($this->disk == 'public') {
             $url = Storage::disk($this->disk)->url($this->path);
+
             return str_starts_with($url, 'http') ? $url : url($url);
         } elseif ($this->disk == 's3') {
             return Storage::disk($this->disk)->temporaryUrl($this->path, now()->addMinutes(10));
@@ -72,10 +73,10 @@ class FileUpload extends Model
     public static function createFile($path, $filename = null, $disk = 'local')
     {
         if (File::exists($path)) {
-            if (!$filename) {
+            if (! $filename) {
                 $filename = basename($path);
             }
-            $save_path = 'uploads/' . now()->format('Ymd') . '/' . uniqid() . '.' . md5($filename) . '.' . Str::lower(File::extension($filename ?? $path));
+            $save_path = 'uploads/'.now()->format('Ymd').'/'.uniqid().'.'.md5($filename).'.'.Str::lower(File::extension($filename ?? $path));
             Storage::disk($disk)->putFileAs($path, $save_path);
 
             return static::query()->create([

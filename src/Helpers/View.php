@@ -28,6 +28,6 @@ class View
     {
         $processor = new DynamicSchemaProcessor;
 
-        return collect($processor->processSchema($this->schemas[$entityName . '::' . $viewType])) ?? null;
+        return collect($processor->processSchema($this->schemas[$entityName.'::'.$viewType])) ?? null;
     }
 }

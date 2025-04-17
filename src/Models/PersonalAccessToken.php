@@ -2,7 +2,4 @@
 
 namespace FammSupport\Models;
 
-class PersonalAccessToken extends \Laravel\Sanctum\PersonalAccessToken
-{
-
-}
+class PersonalAccessToken extends \Laravel\Sanctum\PersonalAccessToken {}

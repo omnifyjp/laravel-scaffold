@@ -26,6 +26,6 @@ class FammGenerateTypesCommand extends Command
      */
     public function handle(): void
     {
-        (new TypescriptModelBuilder())->build();
+        (new TypescriptModelBuilder)->build();
     }
 }

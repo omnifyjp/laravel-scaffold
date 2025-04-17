@@ -14,7 +14,7 @@ class CollectionController extends BaseController
     {
         $builder = $this->getModelBuilder($objectName);
         Gate::authorize('list', $builder->newModelInstance());
+
         return CollectionResource::collection($builder->latest()->paginate($request->get('perPage', 10)));
     }
-
 }

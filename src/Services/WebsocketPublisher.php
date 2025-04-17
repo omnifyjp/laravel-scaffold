@@ -2,9 +2,9 @@
 
 namespace FammSupport\Services;
 
+use Exception;
 use FammSupport\Services\Aws\ApiGatewayManagementApiClient;
 use FammSupport\Services\Aws\DynamoDBService;
-use Exception;
 use Illuminate\Support\Facades\Log;
 
 class WebsocketPublisher
@@ -19,7 +19,7 @@ class WebsocketPublisher
         $apiGatewayClient = app(ApiGatewayManagementApiClient::class);
 
         $result = $dynamoDbClient->queryWithGSI(
-            tableName: "WebsocketConnectionTable",
+            tableName: 'WebsocketConnectionTable',
             indexName: 'topic-index',
             keyConditionExpression: 'topic = :topic',
             expressionAttributeValues: [
@@ -31,24 +31,24 @@ class WebsocketPublisher
             'event' => $event,
             'topic' => $topic,
             'message' => $message,
-            'timestamp' => $timestamp
+            'timestamp' => $timestamp,
         ]);
 
         foreach ($result['items'] as $item) {
             $connectionId = $item['connectionId'];
             $res = $apiGatewayClient->postToConnection($connectionId, $messageData);
-            if (!$res) {
-                Log::error("Error:" . $connectionId);
+            if (! $res) {
+                Log::error('Error:'.$connectionId);
 
-                $dynamoDbClient->deleteItem("WebsocketConnectionTable", [
-                    'connectionId' => $connectionId
+                $dynamoDbClient->deleteItem('WebsocketConnectionTable', [
+                    'connectionId' => $connectionId,
                 ]);
-            }else{
-                Log::info("Sent:" . $connectionId);
+            } else {
+                Log::info('Sent:'.$connectionId);
 
             }
         }
 
-        Log::info("postToConnection:" . $messageData);
+        Log::info('postToConnection:'.$messageData);
     }
 }

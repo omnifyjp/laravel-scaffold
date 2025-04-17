@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 class FormulaParser
 {
     protected mixed $record;
+
     private mixed $datasource;
 
     public function __construct($record = null, $datasource = null)
@@ -37,6 +38,7 @@ class FormulaParser
     protected function parseParams($paramsString): array
     {
         $params = explode(',', $paramsString);
+
         return array_map(function ($param) {
             $param = trim($param);
             if ($param === '$record') {
@@ -44,11 +46,12 @@ class FormulaParser
             }
             if (preg_match('/^\$(\w+)(.\w+)+$/', $param, $matches)) {
                 $path = substr($param, 1);
+
                 return $this->getValueFromPath($path, $this->datasource);
             }
 
             if (is_numeric($param)) {
-                return (float)$param;
+                return (float) $param;
             }
 
             return trim($param, '"\'');
@@ -94,18 +97,18 @@ class FormulaParser
         };
     }
 
-
     private function getValueFromPath($path, $data)
     {
         $keys = explode('.', $path);
         $current = $data;
 
         foreach ($keys as $key) {
-            if (is_null($current)) return null;
+            if (is_null($current)) {
+                return null;
+            }
             $current = $current[$key] ?? null;
         }
 
         return $current;
     }
-
 }

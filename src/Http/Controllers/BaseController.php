@@ -16,18 +16,14 @@ class BaseController extends Controller
      */
     protected function getModelClass($objectName)
     {
-        $modelClass = "\\FammApp\\Models\\" . $objectName;
+        $modelClass = '\\FammApp\\Models\\'.$objectName;
 
         if (class_exists($modelClass)) {
             return $modelClass;
         }
-        throw new Exception("Model class '" . $modelClass . "' not found");
+        throw new Exception("Model class '".$modelClass."' not found");
     }
 
-    /**
-     * @param $objectName
-     * @return Builder
-     */
     protected function getModelBuilder($objectName): Builder
     {
         try {
