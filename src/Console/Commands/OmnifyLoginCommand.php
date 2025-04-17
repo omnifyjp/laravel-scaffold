@@ -13,9 +13,9 @@ class OmnifyLoginCommand extends Command
     protected $signature = 'omnify:login';
 
     protected $description = 'Command description';
-    const ENDPOINT = 'http://famm-service.test';
+//    const ENDPOINT = 'http://famm-service.test';
 
-//    private string $endpoint = 'https://core.omnify.jp';
+    private string $endpoint = 'https://core.omnify.jp';
 
 
     public function handle()
