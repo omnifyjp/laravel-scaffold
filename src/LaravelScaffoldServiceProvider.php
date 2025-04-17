@@ -1,9 +1,15 @@
 <?php
 
-namespace FammSupport;
+namespace OmnifyJP\LaravelScaffold;
 
 use Exception;
-use OmnifyJP\LaravelScaffold\Console\Commands\FammGenerateTypesCommand;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\Sanctum;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateTypesCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyInstallCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyLoginCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectCreateCommand;
@@ -12,16 +18,10 @@ use OmnifyJP\LaravelScaffold\Helpers\Schema;
 use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
 use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
 use OmnifyJP\LaravelScaffold\Services\Aws\SnsService;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
-use Laravel\Sanctum\Sanctum;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-class FammSupportServiceProvider extends ServiceProvider
+class LaravelScaffoldServiceProvider extends ServiceProvider
 {
     /**
      * @throws ContainerExceptionInterface
@@ -34,9 +34,6 @@ class FammSupportServiceProvider extends ServiceProvider
         if (File::exists(omnify_path('app/bootstrap.php'))) {
             require_once omnify_path('app/bootstrap.php');
         }
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/omnify.php', 'omnify'
-        );
 
         try {
             foreach (glob(omnify_path('app/Policies').'/*.php') as $file) {
@@ -55,8 +52,7 @@ class FammSupportServiceProvider extends ServiceProvider
                 OmnifyLoginCommand::class,
                 OmnifyProjectsCommand::class,
                 OmnifyProjectCreateCommand::class,
-
-                FammGenerateTypesCommand::class,
+                OmnifyGenerateTypesCommand::class,
                 OmnifyInstallCommand::class,
             ]);
         }

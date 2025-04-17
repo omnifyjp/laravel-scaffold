@@ -1,6 +1,6 @@
 <?php
 
-namespace FammSupport;
+namespace OmnifyJP\LaravelScaffold;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;

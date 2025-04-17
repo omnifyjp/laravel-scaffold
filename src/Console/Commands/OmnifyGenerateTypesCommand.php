@@ -5,14 +5,14 @@ namespace OmnifyJP\LaravelScaffold\Console\Commands;
 use OmnifyJP\LaravelScaffold\Services\TypescriptModelBuilder;
 use Illuminate\Console\Command;
 
-class FammGenerateTypesCommand extends Command
+class OmnifyGenerateTypesCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'famm:gen-types';
+    protected $signature = 'omnify:gen-types';
 
     /**
      * The console command description.
