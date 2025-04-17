@@ -33,8 +33,8 @@ class Schema
     public function __construct()
     {
         $schemas = collect();
-        if (File::exists(famm_path('schema-lock.json'))) {
-            $schemas = collect(json_decode(File::get(famm_path('schema-lock.json')), 1) ?? []);
+        if (File::exists(omnify_path('schema-lock.json'))) {
+            $schemas = collect(json_decode(File::get(omnify_path('schema-lock.json')), 1) ?? []);
         }
         $this->schemas = $schemas;
     }

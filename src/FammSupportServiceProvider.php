@@ -4,11 +4,13 @@ namespace FammSupport;
 
 use Exception;
 use FammSupport\Console\Commands\FammGenerateTypesCommand;
-use FammSupport\Console\Commands\FammInstallCommand;
+use FammSupport\Console\Commands\OmnifyInstallCommand;
+use FammSupport\Console\Commands\OmnifyLoginCommand;
+use FammSupport\Console\Commands\OmnifyProjectsCommand;
 use FammSupport\Helpers\Schema;
 use FammSupport\Models\PersonalAccessToken;
-use FammSupport\Services\Aws\SnsService;
 use FammSupport\Services\Aws\DynamoDBService;
+use FammSupport\Services\Aws\SnsService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
@@ -28,8 +30,8 @@ class FammSupportServiceProvider extends ServiceProvider
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
-        if (File::exists(famm_path('app/bootstrap.php'))) {
-            require_once famm_path('app/bootstrap.php');
+        if (File::exists(omnify_path('app/bootstrap.php'))) {
+            require_once omnify_path('app/bootstrap.php');
         }
         $this->mergeConfigFrom(
             __DIR__ . '/../config/omnify.php', 'omnify'
@@ -37,7 +39,7 @@ class FammSupportServiceProvider extends ServiceProvider
 
 
         try {
-            foreach (glob(famm_path('app/Policies') . '/*.php') as $file) {
+            foreach (glob(omnify_path('app/Policies') . '/*.php') as $file) {
                 $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
                 $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
@@ -51,8 +53,11 @@ class FammSupportServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                OmnifyLoginCommand::class,
+                OmnifyProjectsCommand::class,
+
                 FammGenerateTypesCommand::class,
-                FammInstallCommand::class
+                OmnifyInstallCommand::class
             ]);
         }
     }

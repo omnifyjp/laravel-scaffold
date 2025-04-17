@@ -13,8 +13,8 @@ class View
     public function __construct()
     {
         $schemas = collect();
-        if (File::exists(famm_path('view-lock.json'))) {
-            $schemas = collect(json_decode(File::get(famm_path('view-lock.json')), 1) ?? []);
+        if (File::exists(omnify_path('view-lock.json'))) {
+            $schemas = collect(json_decode(File::get(omnify_path('view-lock.json')), 1) ?? []);
         }
         $this->schemas = $schemas;
     }

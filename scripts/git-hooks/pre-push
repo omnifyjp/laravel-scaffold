@@ -1,6 +1,0 @@
-#!/bin/bash
-pwd
-php scripts/setup-repo.php production
-git add composer.json
-git commit -m "chore: update repository type to VCS"
-php scripts/setup-repo.php dev

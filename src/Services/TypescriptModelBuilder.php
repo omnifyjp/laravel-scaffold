@@ -42,7 +42,7 @@ class TypescriptModelBuilder
             $template = str_replace("// ##BODY## //", $output, $template);
             $template = str_replace("ModelName", $name, $template);
 
-            File::put(famm_path('ts/Selects/' . $name . '.ts'), $template);
+            File::put(omnify_path('ts/Selects/' . $name . '.ts'), $template);
 
         }
     }

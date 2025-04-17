@@ -26,16 +26,6 @@
             "aliases": []
         }
     },
-    "scripts": {
-        "post-install-cmd": [
-            "git config core.hooksPath scripts/git-hooks",
-            "@php scripts/setup-repo.php"
-        ],
-        "post-update-cmd": [
-            "git config core.hooksPath scripts/git-hooks",
-            "@php scripts/setup-repo.php"
-        ]
-    },
     "require": {
         "laravel/sanctum": "^4.0",
         "ext-zip": "*",

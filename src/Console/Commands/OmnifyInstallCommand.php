@@ -11,14 +11,21 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Yaml\Yaml;
 use ZipArchive;
 
-class FammInstallCommand extends Command
+class OmnifyInstallCommand extends Command
 {
-    protected $signature = 'app:install {--migrate : Run migrate} {--fresh : Drops all tables and re-runs all migrations}';
+    protected $signature = 'omnify:install {--migrate : Run migrate}  {--seed : Run seeder}  {--fresh : Drops all tables and re-runs all migrations}';
 
     protected $description = 'Command description';
 
+
     public function handle(): void
     {
+        if (!OmnifyLoginCommand::verify()) {
+            $this->info('No authentication token found.');
+            return;
+        }
+
+        $seed = $this->option('seed');
         $fresh = $this->option('fresh');
         $migrate = $this->option('migrate');
         if (!($omnify_key = config('omnify.omnify_key'))) {
@@ -31,23 +38,26 @@ class FammInstallCommand extends Command
         }
 
         $objects = $this->generateObjects();
-        $url = "https://core.omnify.jp/api/schema-generator/" . $omnify_key;
-//        $url = "http://famm-service.test/api/schema-generator/" . $omnify_key;
 
-        $outputDir = famm_path(".temp");
-        $baseDir = famm_path();
+        $url = OmnifyLoginCommand::ENDPOINT . "/api/schema-generator/" . $omnify_key;
+
+        $outputDir = omnify_path(".temp");
+        $baseDir = omnify_path();
         File::makeDirectory($outputDir, 0755, true, true);
-        $tempZipFile = famm_path('.temp/temp.zip');
+        $tempZipFile = omnify_path('.temp/temp.zip');
 
         try {
             $this->info("処理中...");
             $response = Http::timeout(600)
+                ->acceptJson()
                 ->withQueryParameters(['fresh' => $fresh])
-                ->withToken($omnify_secret)
+                ->withHeader('x-project-secret', $omnify_secret)
                 ->withBody(json_encode($objects))
                 ->post($url);
             if ($response->failed()) {
-                $this->error("失敗しました: " . $response->status());
+                $body = json_decode($response->body(), 1);
+                $this->error("失敗しました" );
+                $this->warn(json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
                 return;
             }
 
@@ -75,9 +85,9 @@ class FammInstallCommand extends Command
 
             if ($fresh) {
                 $this->info("ファイルを削除中...");
-                File::deleteDirectory(famm_path("database"));
-                File::deleteDirectory(famm_path("app/Models/Base"));
-                File::deleteDirectory(famm_path("ts/Models/Base"));
+                File::deleteDirectory(omnify_path("database"));
+                File::deleteDirectory(omnify_path("app/Models/Base"));
+                File::deleteDirectory(omnify_path("ts/Models/Base"));
             }
 
             // ファイルを実際のディレクトリに移動
@@ -89,8 +99,10 @@ class FammInstallCommand extends Command
                 $output = new BufferedOutput;
                 $this->info("Run migrate");
 
-                Artisan::call('migrate', [
+
+                Artisan::call($fresh ? 'migrate:fresh' : 'migrate', [
                     '--force' => true,
+                    '--seed' => $seed,
                 ], $output);
                 $this->info($output->fetch());
             }
@@ -181,4 +193,5 @@ class FammInstallCommand extends Command
         }
         $this->info("ファイル処理完了: 処理済み {$filesProcessed} 件、スキップ {$filesSkipped} 件");
     }
+
 }
