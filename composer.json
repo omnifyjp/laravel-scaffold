@@ -1,7 +1,7 @@
 {
     "name": "omnifyjp/laravel-scaffold",
     "description": "A powerful Laravel package that automates the generation of Models, Controllers, Migrations, and other essential components from database schemas.",
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "type": "library",
     "license": "proprietary",
     "autoload": {
