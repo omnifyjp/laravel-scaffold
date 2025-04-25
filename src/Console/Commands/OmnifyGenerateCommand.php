@@ -61,7 +61,7 @@ class OmnifyGenerateCommand extends Command
                     File::get(omnify_path('omnify.lock')),
                     'omnify.lock'
                 );
-            };
+            }
 
             $response = $request
                 ->post($url);
