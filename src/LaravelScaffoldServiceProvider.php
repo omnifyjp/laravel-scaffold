@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateTypesCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyInstallCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyLoginCommand;
@@ -36,12 +37,12 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
         }
 
         try {
-            foreach (glob(omnify_path('app/Policies').'/*.php') as $file) {
-                $policyClass = 'FammApp\\Policies\\'.basename($file, '.php');
-                $modelClass = 'FammApp\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(omnify_path('app/Policies') . '/*.php') as $file) {
+                $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
+                $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
+                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
                 }
             }
         } catch (Exception $exception) {
@@ -54,6 +55,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
                 OmnifyProjectCreateCommand::class,
                 OmnifyGenerateTypesCommand::class,
                 OmnifyInstallCommand::class,
+                OmnifyGenerateCommand::class
             ]);
         }
     }

@@ -13,14 +13,14 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Yaml\Yaml;
 use ZipArchive;
 
-class OmnifyInstallCommand extends Command
+class OmnifyGenerateCommand extends Command
 {
-    protected $signature = 'omnify:install {--migrate : Run migrate}  {--seed : Run seeder}  {--fresh : Drops all tables and re-runs all migrations}';
+    protected $signature = 'omnify:generate {--migrate : Run migrate}  {--seed : Run seeder}  {--fresh : Drops all tables and re-runs all migrations}';
 
     protected $description = 'Command description';
 
     // Path to the .project file
-    protected $projectFilePath;
+    protected string $projectFilePath;
 
     public function __construct()
     {
@@ -30,65 +30,14 @@ class OmnifyInstallCommand extends Command
 
     public function handle(): void
     {
-        if (!OmnifyLoginCommand::verify()) {
-            $this->error('No valid authentication token found. Please run omnify:login to login.');
-            return;
-        }
-
         $seed = $this->option('seed');
         $fresh = $this->option('fresh');
         $migrate = $this->option('migrate');
 
-        // Load project data from .project file if it exists
-        $projectData = $this->loadProjectData();
-        $omnify_key = $projectData['omnify_key'] ?? null;
-        $omnify_secret = $projectData['omnify_secret'] ?? null;
-
-        // Check if project data exists
-        if (!$omnify_key) {
-            $this->warn('Project data not found.');
-
-            // Get project list and let user select one
-            $projects = $this->getProjects();
-
-            if (empty($projects)) {
-                $this->error('Failed to retrieve projects or no projects available.');
-
-                return;
-            }
-
-            // Format projects for selection
-            $choices = [];
-            foreach ($projects as $index => $project) {
-                $choices[$index + 1] = $project['code'] . ' - ' . $project['name'];
-            }
-
-            // Let user select a project
-            $selectedIndex = $this->choice('Select a project to use', $choices);
-            $selectedProjectIndex = array_search($selectedIndex, $choices);
-            $selectedProject = $projects[$selectedProjectIndex - 1];
-
-            // Set the selected project's code and secret
-            $omnify_key = $selectedProject['code'];
-            $omnify_secret = $selectedProject['secret'];
-
-            // Save project data to .project file
-            $this->saveProjectData([
-                'omnify_key' => $omnify_key,
-                'omnify_secret' => $omnify_secret,
-                'project_name' => $selectedProject['name'],
-            ]);
-
-            $this->info("Project set to: {$selectedProject['name']} ({$omnify_key})");
-        } elseif (!$omnify_secret) {
-            $this->error('Project secret not found in .project file.');
-
-            return;
-        }
 
         $objects = $this->generateObjects();
 
-        $url = OmnifyLoginCommand::ENDPOINT . '/api/schema-sync/' . $omnify_key;
+        $url = OmnifyLoginCommand::ENDPOINT . '/api/schema-generate';
 
         $outputDir = omnify_path('.temp');
         $baseDir = omnify_path();
@@ -100,22 +49,22 @@ class OmnifyInstallCommand extends Command
             $request = Http::timeout(600)
                 ->acceptJson()
                 ->withQueryParameters(['fresh' => $fresh])
-                ->withHeader('x-project-secret', $omnify_secret);
-
-            $schemaLockPath = omnify_path('schema.lock');
-            if (file_exists($schemaLockPath)) {
-                $schemaLockContent = file_get_contents($schemaLockPath);
-                $request = $request->attach(
-                    'schema_lock',
-                    $schemaLockContent,
-                    'schema.lock'
+                ->attach(
+                    'schema',
+                    json_encode($objects),
+                    'schema.json'
                 );
-            }
+
+            if (file_exists(omnify_path('omnify.lock'))) {
+                $request->attach(
+                    'omnify-lock',
+                    File::get(omnify_path('omnify.lock')),
+                    'omnify.lock'
+                );
+            };
 
             $response = $request
-                ->withBody(json_encode($objects))
                 ->post($url);
-
 
             if ($response->failed()) {
                 $body = json_decode($response->body(), 1);
@@ -141,8 +90,8 @@ class OmnifyInstallCommand extends Command
             File::delete($tempZipFile);
 
             // Check and process filelist
-            $filelistPath = $outputDir . '/filelist.json';
-            if (!File::exists($filelistPath)) {
+            $fileListPath = $outputDir . '/filelist.json';
+            if (!File::exists($fileListPath)) {
                 $this->error('filelist.json not found.');
 
                 return;
@@ -156,7 +105,7 @@ class OmnifyInstallCommand extends Command
             }
 
             // Move files to actual directory
-            $this->moveFilesBasedOnFileList($filelistPath, $outputDir, $baseDir);
+            $this->moveFilesBasedOnFileList($fileListPath, $outputDir, $baseDir);
 
             File::deleteDirectory($outputDir);
 
@@ -281,14 +230,14 @@ class OmnifyInstallCommand extends Command
     }
 
     /**
-     * Move files based on filelist
+     * Move files based on fileList
      */
-    protected function moveFilesBasedOnFileList(string $filelistPath, string $sourceDir, string $targetDir): void
+    protected function moveFilesBasedOnFileList(string $fileListPath, string $sourceDir, string $targetDir): void
     {
-        $filelistContent = File::get($filelistPath);
-        $filelist = json_decode($filelistContent, true);
+        $fileListContent = File::get($fileListPath);
+        $fileList = json_decode($fileListContent, true);
 
-        if (!is_array($filelist)) {
+        if (!is_array($fileList)) {
             $this->error('Invalid format of filelist.json.');
 
             return;
@@ -297,7 +246,7 @@ class OmnifyInstallCommand extends Command
         $filesProcessed = 0;
         $filesSkipped = 0;
 
-        foreach ($filelist as $fileInfo) {
+        foreach ($fileList as $fileInfo) {
             if (!isset($fileInfo['path']) || !isset($fileInfo['replace'])) {
                 $this->warn('Invalid file information was skipped.');
 
