@@ -3,9 +3,8 @@
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
 use Carbon\Carbon;
+use OmnifyJP\LaravelScaffold\OmnifyService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 
 class OmnifyProjectCreateCommand extends Command
 {
@@ -13,11 +12,9 @@ class OmnifyProjectCreateCommand extends Command
 
     protected $description = 'Create a new project via Omnify API';
 
-    private static string $endpoint = OmnifyLoginCommand::ENDPOINT;
-
     public function handle(): int
     {
-        if (! OmnifyLoginCommand::verify()) {
+        if (!OmnifyService::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
 
             return 1;
@@ -34,7 +31,7 @@ class OmnifyProjectCreateCommand extends Command
 
         $this->info("Creating project with code: {$code} and name: {$name}");
 
-        $result = $this->createProject($code, $name);
+        $result = OmnifyService::createProject($code, $name);
 
         if (empty($result)) {
             $this->error('Failed to create project.');
@@ -63,42 +60,5 @@ class OmnifyProjectCreateCommand extends Command
         );
 
         return 0;
-    }
-
-    /**
-     * Create a new project via the API
-     */
-    private function createProject(string $code, string $name): ?array
-    {
-        $authFile = omnify_path('.credentials');
-        $content = File::get($authFile);
-        $decoded = json_decode($content, true);
-        $token = $decoded['token'] ?? '';
-
-        // Remove timestamp for API request
-        $tokenParts = explode('|', $token);
-        array_pop($tokenParts);
-        $accessToken = implode('|', $tokenParts);
-
-        try {
-            $response = Http::withToken($accessToken)
-                ->acceptJson()
-                ->post(self::$endpoint.'/api/create-project', [
-                    'code' => $code,
-                    'name' => $name,
-                ]);
-
-            if ($response->successful()) {
-                return $response->json()['data'] ?? $response->json();
-            }
-
-            $this->error('API Error: '.($response->json()['message'] ?? 'Unknown error'));
-
-            return null;
-        } catch (\Exception $e) {
-            $this->error('Connection Error: '.$e->getMessage());
-
-            return null;
-        }
     }
 }

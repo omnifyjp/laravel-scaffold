@@ -1,9 +1,9 @@
 <?php
 
-/** @noinspection LaravelFunctionsInspection */
-
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use OmnifyJP\LaravelScaffold\OmnifyService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -15,12 +15,11 @@ use ZipArchive;
 
 class OmnifyInstallCommand extends Command
 {
-    protected $signature = 'omnify:install {--migrate : Run migrate}  {--seed : Run seeder}  {--fresh : Drops all tables and re-runs all migrations}';
+    protected $signature = 'omnify:sync {--migrate : Run migrate}  {--seed : Run seeder}  {--fresh : Drops all tables and re-runs all migrations}';
 
     protected $description = 'Command description';
 
-    // Path to the .project file
-    protected $projectFilePath;
+    protected string $projectFilePath;
 
     public function __construct()
     {
@@ -28,10 +27,14 @@ class OmnifyInstallCommand extends Command
         $this->projectFilePath = omnify_path('.project');
     }
 
+    /**
+     * @throws FileNotFoundException
+     */
     public function handle(): void
     {
-        if (!OmnifyLoginCommand::verify()) {
+        if (!OmnifyService::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
+
             return;
         }
 
@@ -49,7 +52,7 @@ class OmnifyInstallCommand extends Command
             $this->warn('Project data not found.');
 
             // Get project list and let user select one
-            $projects = $this->getProjects();
+            $projects = OmnifyService::getProjects();
 
             if (empty($projects)) {
                 $this->error('Failed to retrieve projects or no projects available.');
@@ -88,7 +91,7 @@ class OmnifyInstallCommand extends Command
 
         $objects = $this->generateObjects();
 
-        $url = OmnifyLoginCommand::ENDPOINT . '/api/schema-sync/' . $omnify_key;
+        $url = OmnifyService::ENDPOINT . '/api/schema-generator/' . $omnify_key;
 
         $outputDir = omnify_path('.temp');
         $baseDir = omnify_path();
@@ -97,26 +100,15 @@ class OmnifyInstallCommand extends Command
 
         try {
             $this->info('Processing...');
-            $request = Http::timeout(600)
+            $builder = Http::timeout(600)
                 ->acceptJson()
                 ->withQueryParameters(['fresh' => $fresh])
-                ->withHeader('x-project-secret', $omnify_secret);
-
-            $schemaLockPath = omnify_path('schema.lock');
-            if (file_exists($schemaLockPath)) {
-                $schemaLockContent = file_get_contents($schemaLockPath);
-                $request = $request->attach(
-                    'schema_lock',
-                    $schemaLockContent,
-                    'schema.lock'
-                );
+                ->withHeader('x-project-secret', $omnify_secret)
+                ->withBody(json_encode($objects));
+            if (File::exists(omnify_path('omnify.lock'))) {
+                $builder->attach('lock_file', omnify_path('omnify.lock'), 'omnify.lock');
             }
-
-            $response = $request
-                ->withBody(json_encode($objects))
-                ->post($url);
-
-
+            $response = $builder->post($url);
             if ($response->failed()) {
                 $body = json_decode($response->body(), 1);
                 $this->error('Failed');
@@ -183,40 +175,6 @@ class OmnifyInstallCommand extends Command
             }
 
             return;
-        }
-    }
-
-    /**
-     * Get the list of projects from the API
-     */
-    private function getProjects(): ?array
-    {
-        $authFile = omnify_path('.credentials');
-        $content = File::get($authFile);
-        $decoded = json_decode($content, true);
-        $token = $decoded['token'] ?? '';
-
-        // Remove timestamp for API request
-        $tokenParts = explode('|', $token);
-        array_pop($tokenParts);
-        $accessToken = implode('|', $tokenParts);
-
-        try {
-            $response = Http::withToken($accessToken)
-                ->acceptJson()
-                ->get(OmnifyLoginCommand::ENDPOINT . '/api/projects');
-
-            if ($response->successful()) {
-                return $response->json()['data'] ?? $response->json();
-            }
-
-            $this->error('API Error: ' . ($response->json()['message'] ?? 'Unknown error'));
-
-            return null;
-        } catch (\Exception $e) {
-            $this->error('Connection Error: ' . $e->getMessage());
-
-            return null;
         }
     }
 

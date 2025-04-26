@@ -3,9 +3,9 @@
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use OmnifyJP\LaravelScaffold\OmnifyService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 
 class OmnifyProjectsCommand extends Command
 {
@@ -13,17 +13,18 @@ class OmnifyProjectsCommand extends Command
 
     protected $description = 'Get list of projects from Omnify API';
 
-    private static string $endpoint = OmnifyLoginCommand::ENDPOINT;
-
+    /**
+     * @throws FileNotFoundException
+     */
     public function handle(): int
     {
-        if (! OmnifyLoginCommand::verify()) {
+        if (!OmnifyService::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
 
             return 1;
         }
 
-        $projects = $this->getProjects();
+        $projects = OmnifyService::getProjects();
 
         if (empty($projects)) {
             $this->error('Failed to retrieve projects or no projects available.');
@@ -46,40 +47,6 @@ class OmnifyProjectsCommand extends Command
     }
 
     /**
-     * Get the list of projects from the API
-     */
-    private function getProjects(): ?array
-    {
-        $authFile = omnify_path('.credentials');
-        $content = File::get($authFile);
-        $decoded = json_decode($content, true);
-        $token = $decoded['token'] ?? '';
-
-        // Remove timestamp for API request
-        $tokenParts = explode('|', $token);
-        array_pop($tokenParts);
-        $accessToken = implode('|', $tokenParts);
-
-        try {
-            $response = Http::withToken($accessToken)
-                ->acceptJson()
-                ->get(self::$endpoint.'/api/projects');
-
-            if ($response->successful()) {
-                return $response->json()['data'] ?? $response->json();
-            }
-
-            $this->error('API Error: '.($response->json()['message'] ?? 'Unknown error'));
-
-            return null;
-        } catch (\Exception $e) {
-            $this->error('Connection Error: '.$e->getMessage());
-
-            return null;
-        }
-    }
-
-    /**
      * Format projects data for console table output
      */
     private function formatProjectsForTable(array $projects): array
@@ -88,7 +55,6 @@ class OmnifyProjectsCommand extends Command
 
         foreach ($projects as $project) {
             $tableData[] = [
-                //                'id' => $project['id'] ?? 'N/A',
                 'code' => $project['code'] ?? 'N/A',
                 'name' => $project['name'] ?? 'N/A',
                 'secret' => $project['secret'] ?? 'N/A',

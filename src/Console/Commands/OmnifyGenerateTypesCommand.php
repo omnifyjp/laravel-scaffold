@@ -2,8 +2,8 @@
 
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
-use OmnifyJP\LaravelScaffold\Services\TypescriptModelBuilder;
 use Illuminate\Console\Command;
+use OmnifyJP\LaravelScaffold\Services\TypescriptModelBuilder;
 
 class OmnifyGenerateTypesCommand extends Command
 {
