@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use OmnifyJP\LaravelScaffold\Console\Commands\InstallCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateTypesCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyInstallCommand;
@@ -16,6 +17,7 @@ use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyLoginCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectCreateCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectsCommand;
 use OmnifyJP\LaravelScaffold\Helpers\Schema;
+use OmnifyJP\LaravelScaffold\Installers\ComposerConfigUpdater;
 use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
 use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
 use OmnifyJP\LaravelScaffold\Services\Aws\SnsService;
@@ -30,6 +32,12 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->runningInConsole()) {
+            ComposerConfigUpdater::update();
+        }
+        $this->conditionallyRegisterProviders();
+
+
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
         if (File::exists(omnify_path('app/bootstrap.php'))) {
@@ -42,17 +50,6 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
             ]);
         }
 
-        try {
-            foreach (glob(omnify_path('app/Policies') . '/*.php') as $file) {
-                $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
-                $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
-                if (class_exists($modelClass) && class_exists($policyClass)) {
-                    Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
-                }
-            }
-        } catch (Exception $exception) {
-        }
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -68,6 +65,12 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallCommand::class,
+            ]);
+        }
+
         $this->app->singleton(DynamoDBService::class, function (Application $app) {
             return new DynamoDBService;
         });
@@ -82,4 +85,36 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(support_path('routes/support.php'));
     }
+
+    /**
+     * Conditionally register service providers if they exist
+     */
+    protected function conditionallyRegisterProviders(): void
+    {
+        $providers = [
+            \FammApp\Providers\ServiceProvider::class,
+            \FammApp\Providers\RepositoryServiceProvider::class,
+        ];
+
+        foreach ($providers as $provider) {
+            if (class_exists($provider)) {
+                $this->app->register($provider);
+            }
+        }
+
+        // Policies
+        try {
+            foreach (glob(omnify_path('app/Policies') . '/*.php') as $file) {
+                $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
+                $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
+                if (class_exists($modelClass) && class_exists($policyClass)) {
+                    Gate::policy($modelClass, $policyClass);
+                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
+                }
+            }
+        } catch (Exception $exception) {
+        }
+
+    }
+
 }
