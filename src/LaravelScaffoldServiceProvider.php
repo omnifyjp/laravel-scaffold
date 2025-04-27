@@ -84,6 +84,11 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
         });
 
         $this->loadRoutesFrom(support_path('routes/support.php'));
+
+        $this->app->singleton('omnifyjp.laravel-scaffold.version', function () {
+            return $this->getPackageVersion();
+        });
+
     }
 
     /**
@@ -115,6 +120,39 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
         } catch (Exception $exception) {
         }
 
+    }
+
+    /**
+     * Get package version from composer.json
+     *
+     * @return string
+     */
+    protected function getPackageVersion(): string
+    {
+        $packagePath = dirname(__DIR__, 2);
+        $composerFile = $packagePath . '/composer.json';
+
+        if (file_exists($composerFile)) {
+            $composerData = json_decode(file_get_contents($composerFile), true);
+            if (isset($composerData['version'])) {
+                return $composerData['version'];
+            }
+        }
+
+        $composerLock = base_path('composer.lock');
+        if (file_exists($composerLock)) {
+            $lockData = json_decode(file_get_contents($composerLock), true);
+
+            if (isset($lockData['packages'])) {
+                foreach ($lockData['packages'] as $package) {
+                    if (isset($package['name']) && $package['name'] === 'omnifyjp/laravel-scaffold') {
+                        return $package['version'] ?? 'unknown';
+                    }
+                }
+            }
+        }
+
+        return 'unknown';
     }
 
 }
