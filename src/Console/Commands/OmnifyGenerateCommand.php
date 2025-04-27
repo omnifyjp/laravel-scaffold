@@ -129,7 +129,7 @@ class OmnifyGenerateCommand extends Command
     private function displayHeader(): void
     {
         $version = app('omnifyjp.laravel-scaffold.version');
-        $line = str_repeat('=', strlen("Omnify LaravelScaffold") + 29);
+        $line = str_repeat('=', strlen("Omnify LaravelScaffold") + 26);
 
         $this->newLine();
         $this->line("<fg=blue>{$line}</>");

@@ -3,6 +3,7 @@
 namespace OmnifyJP\LaravelScaffold\Services;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -183,6 +184,7 @@ class OmnifyGeneratorService
      *
      * @param string $fileListPath
      * @return bool
+     * @throws FileNotFoundException
      */
     public function moveFilesBasedOnFileList(string $fileListPath): bool
     {

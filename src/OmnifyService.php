@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 class OmnifyService
 {
     const ENDPOINT = 'https://core.omnify.jp';
+//    const ENDPOINT = 'http://famm-service.test';
 
     /**
      * Check if authentication token exists
