@@ -64,8 +64,8 @@ class ComposerConfigUpdater
 
         $namespaces = [
             'FammApp\\' => '.famm/app/',
-            'FammApp\\Database\\Factories\\' => '.famm/database/factories/',
-            'FammApp\\Database\\Seeders\\' => '.famm/database/seeders/'
+            'FammDatabase\\Factories\\' => '.famm/database/factories/',
+            'FammDatabase\\Seeders\\' => '.famm/database/seeders/'
         ];
 
         foreach ($namespaces as $namespace => $path) {
