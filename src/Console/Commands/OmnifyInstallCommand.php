@@ -134,7 +134,7 @@ class OmnifyInstallCommand extends Command
             return;
 
         } catch (\Exception $e) {
-            $this->error('Error occurred: ' . $e->getMessage());
+            $this->displayFriendlyError($e);
 
             // Clean up in case of error
             $generatorService->cleanup();
@@ -188,5 +188,62 @@ class OmnifyInstallCommand extends Command
         $this->line("<fg=blue>===      </><fg=green>{$title} v{$version}</><fg=blue>      ===</>");
         $this->line("<fg=blue>{$line}</>");
         $this->newLine();
+    }
+
+    /**
+     * Display a user-friendly error message for exceptions
+     *
+     * @param \Exception $exception
+     * @return void
+     */
+    private function displayFriendlyError(\Exception $exception): void
+    {
+        $this->newLine();
+        $this->error('❌ An error occurred during the sync process');
+        $this->newLine();
+        
+        // Check if it's an HTTP exception and provide specific guidance
+        if (str_contains($exception->getMessage(), 'cURL error') || str_contains($exception->getMessage(), 'timeout')) {
+            $this->line('  <fg=red>Connection Issue:</> Unable to connect to Omnify API');
+            $this->line('  <fg=yellow>Possible causes:</> ');
+            $this->line('    • Network connectivity issues');
+            $this->line('    • API server is temporarily unavailable');
+            $this->line('    • Firewall blocking the connection');
+            $this->newLine();
+            $this->line('  <fg=cyan>Try:</> ');
+            $this->line('    • Check your internet connection');
+            $this->line('    • Wait a few minutes and try again');
+            $this->line('    • Contact support if the issue persists');
+        } elseif (str_contains($exception->getMessage(), 'Unauthenticated') || str_contains($exception->getMessage(), '401')) {
+            $this->line('  <fg=red>Authentication Issue:</> Invalid or expired token');
+            $this->newLine();
+            $this->line('  <fg=cyan>Try:</> ');
+            $this->line('    • Run: <fg=green>php artisan omnify:login</> to re-authenticate');
+        } elseif (str_contains($exception->getMessage(), 'json')) {
+            $this->line('  <fg=red>Data Format Issue:</> Problem parsing response data');
+            $this->line('  <fg=yellow>This might be a temporary server issue</> ');
+            $this->newLine();
+            $this->line('  <fg=cyan>Try:</> ');
+            $this->line('    • Wait a few minutes and try again');
+            $this->line('    • Check if your schema files are valid');
+        } else {
+            $this->line('  <fg=red>Error:</> ' . $exception->getMessage());
+        }
+        
+        $this->newLine();
+        $this->line('  <fg=gray>For technical details, use -v flag for verbose output</> ');
+        
+        // Show full exception details only in verbose mode
+        if ($this->getOutput()->isVerbose()) {
+            $this->newLine();
+            $this->line('  <fg=gray>Technical Details:</> ');
+            $this->line('  <fg=gray>Exception:</> ' . get_class($exception));
+            $this->line('  <fg=gray>File:</> ' . $exception->getFile() . ':' . $exception->getLine());
+            if ($this->getOutput()->isVeryVerbose()) {
+                $this->newLine();
+                $this->line('  <fg=gray>Stack Trace:</> ');
+                $this->line($exception->getTraceAsString());
+            }
+        }
     }
 }

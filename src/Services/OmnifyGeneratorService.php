@@ -107,9 +107,7 @@ class OmnifyGeneratorService
     public function processApiResponse($response): bool
     {
         if ($response->failed()) {
-            $body = json_decode($response->body(), 1);
-            $this->command->error('Failed');
-            $this->command->warn(json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            $this->displayFormattedError($response);
             return false;
         }
 
@@ -162,6 +160,79 @@ class OmnifyGeneratorService
         File::delete($this->tempZipFile);
 
         return true;
+    }
+
+    /**
+     * Display a formatted, user-friendly error message
+     *
+     * @param mixed $response
+     * @return void
+     */
+    private function displayFormattedError($response): void
+    {
+        $body = json_decode($response->body(), true);
+        
+        $this->command->newLine();
+        $this->command->error('❌ API Request Failed');
+        $this->command->newLine();
+        
+        // Display HTTP status
+        $statusCode = $response->status();
+        $this->command->line("  <fg=red>HTTP Status:</> {$statusCode}");
+        
+        if (is_array($body)) {
+            // Display main error message
+            if (isset($body['message'])) {
+                $this->command->line("  <fg=red>Message:</> {$body['message']}");
+            }
+            
+            // Display detailed errors if available
+            if (isset($body['errors']) && is_array($body['errors'])) {
+                $this->command->newLine();
+                $this->command->line("  <fg=yellow>Details:</>");
+                foreach ($body['errors'] as $field => $errors) {
+                    if (is_array($errors)) {
+                        foreach ($errors as $error) {
+                            $this->command->line("    <fg=red>•</> {$field}: {$error}");
+                        }
+                    } else {
+                        $this->command->line("    <fg=red>•</> {$field}: {$errors}");
+                    }
+                }
+            }
+            
+            // Display validation errors if available
+            if (isset($body['error']) && is_string($body['error'])) {
+                $this->command->line("  <fg=red>Error:</> {$body['error']}");
+            }
+            
+            // Display additional data if available (but formatted)
+            if (isset($body['data']) && is_array($body['data'])) {
+                $this->command->newLine();
+                $this->command->line("  <fg=yellow>Additional Information:</>");
+                foreach ($body['data'] as $key => $value) {
+                    if (is_string($value) || is_numeric($value)) {
+                        $this->command->line("    <fg=cyan>{$key}:</> {$value}");
+                    }
+                }
+            }
+        } else {
+            // If response is not JSON, display raw response
+            $rawBody = $response->body();
+            if (!empty($rawBody)) {
+                $this->command->line("  <fg=red>Response:</> {$rawBody}");
+            }
+        }
+        
+        $this->command->newLine();
+        $this->command->line("  <fg=gray>For more technical details, use -v flag</>");
+        
+        // Show raw JSON only in verbose mode
+        if ($this->command->getOutput()->isVerbose() && is_array($body)) {
+            $this->command->newLine();
+            $this->command->line("  <fg=gray>Raw Response:</>");
+            $this->command->line("  " . json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        }
     }
 
     /**
