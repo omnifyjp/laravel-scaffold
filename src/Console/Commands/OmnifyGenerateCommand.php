@@ -30,7 +30,7 @@ class OmnifyGenerateCommand extends Command
 
         // DEV環境の場合、ユーザーに通知
         if (env('OMNIFY_ENV') === 'dev') {
-            $this->warn('⚠️  Running in DEV environment');
+            $this->warn('⚠️  Running in DEV environment xxx');
             $this->line('   📡 Endpoint: ' . OmnifyService::getEndpoint());
             $this->newLine();
         }

@@ -285,6 +285,19 @@ class OmnifyGeneratorService
         $this->command->info('Preparing for installation');
         $this->showSpinner('  Analyzing file structure', 2);
 
+        // app/Models/OmnifyBase フォルダーの特別処理 - 完全に削除してから新しいファイルをコピー
+        $deletedOmnifyBaseFiles = $this->cleanOmnifyBaseModelsDirectory($fileList);
+
+        // Check for OmnifyBase files in filelist
+        $omnifyBaseFiles = array_filter($fileList, function ($file) {
+            return str_starts_with($file['path'], 'app/Models/OmnifyBase/') ||
+                str_starts_with($file['path'], 'laravel/app/Models/OmnifyBase/');
+        });
+
+        if (!empty($omnifyBaseFiles)) {
+            $this->command->info('🏗️  Found ' . count($omnifyBaseFiles) . ' OmnifyBase model(s) to process');
+        }
+
         $this->command->info("Installing {$totalFiles} files");
 
         $progressBar = $this->command->getOutput()->createProgressBar($totalFiles);
@@ -295,6 +308,18 @@ class OmnifyGeneratorService
         $filesSkipped = 0;
         $fileDetails = [];
         $factoryStats = [
+            'installed' => [],
+            'skipped' => [],
+            'exists' => [],
+        ];
+        $copyStats = [
+            'deleted' => $deletedOmnifyBaseFiles,
+            'installed' => [],
+            'skipped' => [],
+            'exists' => [],
+        ];
+        $omnifyBaseStats = [
+            'deleted' => $deletedOmnifyBaseFiles,
             'installed' => [],
             'skipped' => [],
             'exists' => [],
@@ -331,7 +356,16 @@ class OmnifyGeneratorService
                 }
             } else {
                 // 他のファイルは .famm/ ディレクトリに移動
-                $targetPath = $this->baseDir . '/' . $fileInfo['path'];
+                // ただし、OmnifyBase files は Laravel プロジェクトに直接移動
+                if (str_starts_with($fileInfo['path'], 'app/Models/OmnifyBase/')) {
+                    $targetPath = base_path($fileInfo['path']);
+                } elseif (str_starts_with($fileInfo['path'], 'laravel/app/Models/OmnifyBase/')) {
+                    // laravel/app/Models/OmnifyBase/ -> Laravel/app/Models/OmnifyBase/
+                    $laravelPath = str_replace('laravel/', '', $fileInfo['path']);
+                    $targetPath = base_path($laravelPath);
+                } else {
+                    $targetPath = $this->baseDir . '/' . $fileInfo['path'];
+                }
             }
 
             // ファイルが存在しない場合はスキップ
@@ -378,13 +412,39 @@ class OmnifyGeneratorService
                 }
             } else {
                 // 通常のファイル処理 - replaceフラグに基づく
+                $fileName = basename($fileInfo['path']);
+
                 if ($fileInfo['replace'] || ! File::exists($targetPath)) {
                     File::copy($sourcePath, $targetPath, true);
                     $filesProcessed++;
-                    $fileDetails[] = ['status' => 'info', 'message' => 'File installed: ' . $fileInfo['path']];
+
+                    // OmnifyBase files と通常のファイルを区別してtrack
+                    if (
+                        str_starts_with($fileInfo['path'], 'app/Models/OmnifyBase/') ||
+                        str_starts_with($fileInfo['path'], 'laravel/app/Models/OmnifyBase/')
+                    ) {
+                        $omnifyBaseStats['installed'][] = $fileName;
+                        $copyStats['installed'][] = $fileName;
+                        $fileDetails[] = ['status' => 'info', 'message' => 'OmnifyBase file installed: ' . $fileInfo['path']];
+                    } else {
+                        $copyStats['installed'][] = $fileName;
+                        $fileDetails[] = ['status' => 'info', 'message' => 'File installed: ' . $fileInfo['path']];
+                    }
                 } else {
                     $filesSkipped++;
-                    $fileDetails[] = ['status' => 'warn', 'message' => 'File skipped: ' . $fileInfo['path']];
+
+                    // OmnifyBase files と通常のファイルを区別してtrack
+                    if (
+                        str_starts_with($fileInfo['path'], 'app/Models/OmnifyBase/') ||
+                        str_starts_with($fileInfo['path'], 'laravel/app/Models/OmnifyBase/')
+                    ) {
+                        $omnifyBaseStats['exists'][] = $fileName;
+                        $copyStats['exists'][] = $fileName;
+                        $fileDetails[] = ['status' => 'warn', 'message' => 'OmnifyBase file exists: ' . $fileInfo['path']];
+                    } else {
+                        $copyStats['skipped'][] = $fileName;
+                        $fileDetails[] = ['status' => 'warn', 'message' => 'File skipped: ' . $fileInfo['path']];
+                    }
                 }
             }
 
@@ -405,6 +465,12 @@ class OmnifyGeneratorService
 
         // Migrationファイルの状態テーブルを表示
         $this->showMigrationStatusTable();
+
+        // Copy Status テーブルを表示
+        $this->showCopyStatusTable($copyStats);
+
+        // OmnifyBase Model Status テーブルを表示
+        $this->showOmnifyBaseStatusTable($omnifyBaseStats);
 
         // Only show detailed file information if verbosity is set higher
         if ($this->command->getOutput()->isVerbose()) {
@@ -766,6 +832,173 @@ class OmnifyGeneratorService
 
         $this->command->newLine();
         $this->command->info('✓ Migration completed successfully');
+    }
+
+    /**
+     * Clean Omnify Base Models directory before copying new files
+     */
+    private function cleanOmnifyBaseModelsDirectory(array $fileList): array
+    {
+        $deletedFiles = [];
+
+        // app/Models/OmnifyBase/ ディレクトリにコピーするファイルがあるかチェック
+        $hasOmnifyBaseFiles = false;
+        foreach ($fileList as $fileInfo) {
+            if (
+                str_starts_with($fileInfo['path'], 'app/Models/OmnifyBase/') ||
+                str_starts_with($fileInfo['path'], 'laravel/app/Models/OmnifyBase/')
+            ) {
+                $hasOmnifyBaseFiles = true;
+                break;
+            }
+        }
+
+        if ($hasOmnifyBaseFiles) {
+            $omnifyBaseDir = base_path('app/Models/OmnifyBase');
+
+            if (File::exists($omnifyBaseDir)) {
+                $this->command->info('Cleaning existing OmnifyBase Models directory');
+
+                // 削除前に既存ファイルをリストアップ
+                $existingFiles = File::allFiles($omnifyBaseDir);
+                foreach ($existingFiles as $file) {
+                    $deletedFiles[] = $file->getFilename();
+                }
+
+                File::deleteDirectory($omnifyBaseDir);
+                $this->command->info('✓ app/Models/OmnifyBase directory cleaned');
+
+                if ($this->command->getOutput()->isVerbose()) {
+                    $this->command->info('  - ' . count($deletedFiles) . ' files deleted');
+                }
+            }
+        }
+
+        return $deletedFiles;
+    }
+
+    /**
+     * Show copy files status table
+     */
+    public function showCopyStatusTable(array $copyStats): void
+    {
+        $totalFiles = count($copyStats['deleted']) + count($copyStats['installed']) + count($copyStats['skipped']) + count($copyStats['exists']);
+
+        if ($totalFiles === 0) {
+            return; // ファイルがない場合は何も表示しない
+        }
+
+        $this->command->newLine();
+        $this->command->info('📄 File Copy Status');
+
+        // テーブルデータを準備
+        $tableData = [];
+
+        // 削除されたファイル
+        foreach ($copyStats['deleted'] as $fileName) {
+            $tableData[] = [
+                'File' => $fileName,
+                'Status' => '🗑️  Deleted',
+                'Action' => 'Old OmnifyBase file removed',
+            ];
+        }
+
+        // インストール済みファイル
+        foreach ($copyStats['installed'] as $fileName) {
+            $tableData[] = [
+                'File' => $fileName,
+                'Status' => '✅ Installed',
+                'Action' => 'New file copied successfully',
+            ];
+        }
+
+        // 既存ファイル
+        foreach ($copyStats['exists'] as $fileName) {
+            $tableData[] = [
+                'File' => $fileName,
+                'Status' => '📄 Exists',
+                'Action' => 'File already exists (not replaced)',
+            ];
+        }
+
+        // スキップされたファイル
+        foreach ($copyStats['skipped'] as $fileName) {
+            $tableData[] = [
+                'File' => $fileName,
+                'Status' => '⏭️  Skipped',
+                'Action' => 'File skipped (replace=false)',
+            ];
+        }
+
+        // テーブルが空でない場合のみ表示
+        if (! empty($tableData)) {
+            $headers = ['File', 'Status', 'Action'];
+            $this->command->table($headers, $tableData);
+        }
+
+        // 統計情報を表示
+        $this->command->info('📊 Copy Summary:');
+        $this->command->info("  - " . count($copyStats['deleted']) . " files deleted");
+        $this->command->info("  - " . count($copyStats['installed']) . " files installed");
+        $this->command->info("  - " . count($copyStats['exists']) . " files already exist");
+        $this->command->info("  - " . count($copyStats['skipped']) . " files skipped");
+    }
+
+    /**
+     * Show OmnifyBase models status table
+     */
+    public function showOmnifyBaseStatusTable(array $omnifyBaseStats): void
+    {
+        $totalFiles = count($omnifyBaseStats['deleted']) + count($omnifyBaseStats['installed']) + count($omnifyBaseStats['exists']);
+
+        if ($totalFiles === 0) {
+            return; // OmnifyBaseファイルがない場合は何も表示しない
+        }
+
+        $this->command->newLine();
+        $this->command->info('🏗️  OmnifyBase Models Status (app/Models/OmnifyBase/)');
+
+        // テーブルデータを準備
+        $tableData = [];
+
+        // 削除されたファイル
+        foreach ($omnifyBaseStats['deleted'] as $fileName) {
+            $tableData[] = [
+                'File' => $fileName,
+                'Status' => '🗑️  Deleted',
+                'Action' => 'Old OmnifyBase model removed (fresh replacement)',
+            ];
+        }
+
+        // インストール済みファイル
+        foreach ($omnifyBaseStats['installed'] as $fileName) {
+            $tableData[] = [
+                'File' => $fileName,
+                'Status' => '✅ Installed',
+                'Action' => 'New OmnifyBase model created',
+            ];
+        }
+
+        // 既存ファイル
+        foreach ($omnifyBaseStats['exists'] as $fileName) {
+            $tableData[] = [
+                'File' => $fileName,
+                'Status' => '📄 Exists',
+                'Action' => 'OmnifyBase model already exists (not replaced)',
+            ];
+        }
+
+        // テーブルが空でない場合のみ表示
+        if (! empty($tableData)) {
+            $headers = ['File', 'Status', 'Action'];
+            $this->command->table($headers, $tableData);
+        }
+
+        // 統計情報を表示
+        $this->command->info('📊 OmnifyBase Summary:');
+        $this->command->info("  - " . count($omnifyBaseStats['deleted']) . " models deleted");
+        $this->command->info("  - " . count($omnifyBaseStats['installed']) . " models installed");
+        $this->command->info("  - " . count($omnifyBaseStats['exists']) . " models already exist");
     }
 
     /**
