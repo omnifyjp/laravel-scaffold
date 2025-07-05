@@ -2,8 +2,8 @@
 
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
-use OmnifyJP\LaravelScaffold\OmnifyService;
 use Illuminate\Console\Command;
+use OmnifyJP\LaravelScaffold\OmnifyService;
 
 class OmnifyLoginCommand extends Command
 {
@@ -13,7 +13,7 @@ class OmnifyLoginCommand extends Command
 
     public function handle()
     {
-        if (!OmnifyService::tokenExists()) {
+        if (! OmnifyService::tokenExists()) {
             $this->info('No authentication token found.');
             if ($this->promptLogin()) {
                 $this->info('Login successful. Token saved.');
@@ -47,10 +47,12 @@ class OmnifyLoginCommand extends Command
 
         if ($token) {
             OmnifyService::saveToken($token);
+
             return true;
         }
 
         $this->error('API Error: Failed to create token');
+
         return false;
     }
 }

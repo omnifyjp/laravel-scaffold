@@ -2,10 +2,10 @@
 
 namespace OmnifyJP\LaravelScaffold\Services;
 
-use OmnifyJP\LaravelScaffold\Models\Select;
-use OmnifyJP\LaravelScaffold\Models\SelectOption;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use OmnifyJP\LaravelScaffold\Models\Select;
+use OmnifyJP\LaravelScaffold\Models\SelectOption;
 
 class TypescriptModelBuilder
 {

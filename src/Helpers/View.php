@@ -2,9 +2,9 @@
 
 namespace OmnifyJP\LaravelScaffold\Helpers;
 
-use OmnifyJP\LaravelScaffold\DynamicSchemaProcessor;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use OmnifyJP\LaravelScaffold\DynamicSchemaProcessor;
 
 class View
 {

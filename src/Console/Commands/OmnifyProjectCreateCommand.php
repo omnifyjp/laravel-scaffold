@@ -3,8 +3,8 @@
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
 use Carbon\Carbon;
-use OmnifyJP\LaravelScaffold\OmnifyService;
 use Illuminate\Console\Command;
+use OmnifyJP\LaravelScaffold\OmnifyService;
 
 class OmnifyProjectCreateCommand extends Command
 {
@@ -14,7 +14,7 @@ class OmnifyProjectCreateCommand extends Command
 
     public function handle(): int
     {
-        if (!OmnifyService::verify()) {
+        if (! OmnifyService::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
 
             return 1;

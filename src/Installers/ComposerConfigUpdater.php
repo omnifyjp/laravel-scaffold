@@ -9,7 +9,7 @@ class ComposerConfigUpdater
     /**
      * Update the composer.json file with required namespaces and providers
      *
-     * @param bool $verbose Whether to output verbose information
+     * @param  bool  $verbose  Whether to output verbose information
      * @return array Status information
      */
     public static function update(bool $verbose = false): array
@@ -17,13 +17,14 @@ class ComposerConfigUpdater
         $status = [
             'success' => true,
             'messages' => [],
-            'changes' => []
+            'changes' => [],
         ];
 
         $composerFile = base_path('composer.json');
-        if (!file_exists($composerFile)) {
+        if (! file_exists($composerFile)) {
             $status['success'] = false;
             $status['messages'][] = 'composer.json not found.';
+
             return $status;
         }
 
@@ -33,24 +34,25 @@ class ComposerConfigUpdater
         if (json_last_error() !== JSON_ERROR_NONE) {
             $status['success'] = false;
             $status['messages'][] = 'Invalid composer.json format.';
+
             return $status;
         }
 
         // Add providers
         $providers = [
             '\FammApp\Providers\ServiceProvider::class',
-            '\FammApp\Providers\RepositoryServiceProvider::class'
+            '\FammApp\Providers\RepositoryServiceProvider::class',
         ];
 
         $changed = false;
 
         // Update providers
-        if (!isset($composerJson['extra']['laravel']['providers'])) {
+        if (! isset($composerJson['extra']['laravel']['providers'])) {
             $composerJson['extra']['laravel']['providers'] = [];
         }
 
         foreach ($providers as $provider) {
-            if (!in_array($provider, $composerJson['extra']['laravel']['providers'])) {
+            if (! in_array($provider, $composerJson['extra']['laravel']['providers'])) {
                 $composerJson['extra']['laravel']['providers'][] = $provider;
                 $changed = true;
                 $status['changes'][] = "Added provider: {$provider}";
@@ -58,18 +60,16 @@ class ComposerConfigUpdater
         }
 
         // Update autoload PSR-4
-        if (!isset($composerJson['autoload']['psr-4'])) {
+        if (! isset($composerJson['autoload']['psr-4'])) {
             $composerJson['autoload']['psr-4'] = [];
         }
 
         $namespaces = [
             'FammApp\\' => '.famm/app/',
-            'FammDatabase\\Factories\\' => '.famm/database/factories/',
-            'FammDatabase\\Seeders\\' => '.famm/database/seeders/'
         ];
 
         foreach ($namespaces as $namespace => $path) {
-            if (!isset($composerJson['autoload']['psr-4'][$namespace])) {
+            if (! isset($composerJson['autoload']['psr-4'][$namespace])) {
                 $composerJson['autoload']['psr-4'][$namespace] = $path;
                 $changed = true;
                 $status['changes'][] = "Added namespace: {$namespace} => {$path}";
@@ -101,21 +101,22 @@ class ComposerConfigUpdater
     /**
      * Create necessary base directories
      *
-     * @param array $status Status information to update
-     * @return void
+     * @param  array  $status  Status information to update
      */
     protected static function createBaseDirectories(array &$status): void
     {
         $directories = [
             '.famm/app/Providers',
-            '.famm/database/factories',
-            '.famm/database/seeders'
+            // 注意: .famm/database ディレクトリは作成しない
+            // factories と seeders は Laravel の database/ ディレクトリに直接配置されるため
+            // '.famm/database/factories',
+            // '.famm/database/seeders',
         ];
 
         foreach ($directories as $directory) {
             $path = base_path($directory);
-            if (!is_dir($path)) {
-                if (!File::makeDirectory($path, 0755, true, true)) {
+            if (! is_dir($path)) {
+                if (! File::makeDirectory($path, 0755, true, true)) {
                     $status['messages'][] = "Failed to create directory: {$directory}";
                 } else {
                     $status['changes'][] = "Created directory: {$directory}";
@@ -127,16 +128,15 @@ class ComposerConfigUpdater
     /**
      * Create placeholder provider files to avoid errors before schema build
      *
-     * @param array $status Status information to update
-     * @return void
+     * @param  array  $status  Status information to update
      */
     protected static function createPlaceholderProviders(array &$status): void
     {
         $providersPath = base_path('.famm/app/Providers');
 
         // Service Provider
-        $serviceProviderPath = $providersPath . '/ServiceProvider.php';
-        if (!file_exists($serviceProviderPath)) {
+        $serviceProviderPath = $providersPath.'/ServiceProvider.php';
+        if (! file_exists($serviceProviderPath)) {
             $content = <<<'PHP'
 <?php
 
@@ -164,13 +164,13 @@ class ServiceProvider extends BaseServiceProvider
 }
 PHP;
             if (File::put($serviceProviderPath, $content)) {
-                $status['changes'][] = "Created placeholder ServiceProvider";
+                $status['changes'][] = 'Created placeholder ServiceProvider';
             }
         }
 
         // Repository Service Provider
-        $repoProviderPath = $providersPath . '/RepositoryServiceProvider.php';
-        if (!file_exists($repoProviderPath)) {
+        $repoProviderPath = $providersPath.'/RepositoryServiceProvider.php';
+        if (! file_exists($repoProviderPath)) {
             $content = <<<'PHP'
 <?php
 
@@ -198,7 +198,7 @@ class RepositoryServiceProvider extends ServiceProvider
 }
 PHP;
             if (File::put($repoProviderPath, $content)) {
-                $status['changes'][] = "Created placeholder RepositoryServiceProvider";
+                $status['changes'][] = 'Created placeholder RepositoryServiceProvider';
             }
         }
     }

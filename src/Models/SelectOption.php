@@ -2,8 +2,8 @@
 
 namespace OmnifyJP\LaravelScaffold\Models;
 
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Model;
+use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 /**
  * @property mixed $value

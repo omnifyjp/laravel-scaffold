@@ -2,9 +2,9 @@
 
 namespace OmnifyJP\LaravelScaffold\Models;
 
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 class GeneratedDocumentCombinationParameter extends Model
 {

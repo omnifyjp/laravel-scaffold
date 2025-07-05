@@ -2,10 +2,10 @@
 
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use OmnifyJP\LaravelScaffold\OmnifyService;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\File;
+use OmnifyJP\LaravelScaffold\OmnifyService;
 use OmnifyJP\LaravelScaffold\Services\OmnifyGeneratorService;
 
 class OmnifyInstallCommand extends Command
@@ -27,10 +27,11 @@ class OmnifyInstallCommand extends Command
      */
     public function handle(): void
     {
-        $this->displayHeader("Omnify Sync");
+        $this->displayHeader('Omnify Sync');
 
-        if (!OmnifyService::verify()) {
+        if (! OmnifyService::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
+
             return;
         }
 
@@ -44,7 +45,7 @@ class OmnifyInstallCommand extends Command
         $omnify_secret = $projectData['omnify_secret'] ?? null;
 
         // Check if project data exists
-        if (!$omnify_key) {
+        if (! $omnify_key) {
             $this->warn('Project data not found.');
 
             // Get project list and let user select one
@@ -52,13 +53,14 @@ class OmnifyInstallCommand extends Command
 
             if (empty($projects)) {
                 $this->error('Failed to retrieve projects or no projects available.');
+
                 return;
             }
 
             // Format projects for selection
             $choices = [];
             foreach ($projects as $index => $project) {
-                $choices[$index + 1] = $project['code'] . ' - ' . $project['name'];
+                $choices[$index + 1] = $project['code'].' - '.$project['name'];
             }
 
             // Let user select a project
@@ -78,8 +80,9 @@ class OmnifyInstallCommand extends Command
             ]);
 
             $this->info("Project set to: {$selectedProject['name']} ({$omnify_key})");
-        } elseif (!$omnify_secret) {
+        } elseif (! $omnify_secret) {
             $this->error('Project secret not found in .project file.');
+
             return;
         }
 
@@ -88,7 +91,7 @@ class OmnifyInstallCommand extends Command
 
         $objects = $generatorService->generateObjects();
 
-        $url = OmnifyService::ENDPOINT . '/api/schema-generator/' . $omnify_key;
+        $url = OmnifyService::getEndpoint().'/api/schema-generator/'.$omnify_key;
 
         try {
             $this->info('Processing...');
@@ -102,14 +105,15 @@ class OmnifyInstallCommand extends Command
             $response = $request->post($url);
 
             // Process the API response
-            if (!$generatorService->processApiResponse($response)) {
+            if (! $generatorService->processApiResponse($response)) {
                 return;
             }
 
             // Check and process filelist
             $filelistPath = omnify_path('.temp/filelist.json');
-            if (!File::exists($filelistPath)) {
+            if (! File::exists($filelistPath)) {
                 $this->error('filelist.json not found.');
+
                 return;
             }
 
@@ -118,7 +122,7 @@ class OmnifyInstallCommand extends Command
             }
 
             // Move files
-            if (!$generatorService->moveFilesBasedOnFileList($filelistPath)) {
+            if (! $generatorService->moveFilesBasedOnFileList($filelistPath)) {
                 return;
             }
 
@@ -131,6 +135,7 @@ class OmnifyInstallCommand extends Command
             }
 
             $this->info('Process completed successfully!');
+
             return;
 
         } catch (\Exception $e) {
@@ -138,6 +143,7 @@ class OmnifyInstallCommand extends Command
 
             // Clean up in case of error
             $generatorService->cleanup();
+
             return;
         }
     }
@@ -150,12 +156,15 @@ class OmnifyInstallCommand extends Command
         if (File::exists($this->projectFilePath)) {
             try {
                 $content = File::get($this->projectFilePath);
+
                 return json_decode($content, true) ?? [];
             } catch (\Exception $e) {
-                $this->warn('Failed to read .project file: ' . $e->getMessage());
+                $this->warn('Failed to read .project file: '.$e->getMessage());
+
                 return [];
             }
         }
+
         return [];
     }
 
@@ -169,14 +178,12 @@ class OmnifyInstallCommand extends Command
             File::put($this->projectFilePath, $jsonContent);
             $this->info('Project data saved to .project file.');
         } catch (\Exception $e) {
-            $this->error('Failed to save project data: ' . $e->getMessage());
+            $this->error('Failed to save project data: '.$e->getMessage());
         }
     }
 
     /**
      * Display a stylish header for the command
-     *
-     * @param string $title
      */
     private function displayHeader(string $title): void
     {
@@ -192,16 +199,13 @@ class OmnifyInstallCommand extends Command
 
     /**
      * Display a user-friendly error message for exceptions
-     *
-     * @param \Exception $exception
-     * @return void
      */
     private function displayFriendlyError(\Exception $exception): void
     {
         $this->newLine();
         $this->error('❌ An error occurred during the sync process');
         $this->newLine();
-        
+
         // Check if it's an HTTP exception and provide specific guidance
         if (str_contains($exception->getMessage(), 'cURL error') || str_contains($exception->getMessage(), 'timeout')) {
             $this->line('  <fg=red>Connection Issue:</> Unable to connect to Omnify API');
@@ -227,18 +231,18 @@ class OmnifyInstallCommand extends Command
             $this->line('    • Wait a few minutes and try again');
             $this->line('    • Check if your schema files are valid');
         } else {
-            $this->line('  <fg=red>Error:</> ' . $exception->getMessage());
+            $this->line('  <fg=red>Error:</> '.$exception->getMessage());
         }
-        
+
         $this->newLine();
         $this->line('  <fg=gray>For technical details, use -v flag for verbose output</> ');
-        
+
         // Show full exception details only in verbose mode
         if ($this->getOutput()->isVerbose()) {
             $this->newLine();
             $this->line('  <fg=gray>Technical Details:</> ');
-            $this->line('  <fg=gray>Exception:</> ' . get_class($exception));
-            $this->line('  <fg=gray>File:</> ' . $exception->getFile() . ':' . $exception->getLine());
+            $this->line('  <fg=gray>Exception:</> '.get_class($exception));
+            $this->line('  <fg=gray>File:</> '.$exception->getFile().':'.$exception->getLine());
             if ($this->getOutput()->isVeryVerbose()) {
                 $this->newLine();
                 $this->line('  <fg=gray>Stack Trace:</> ');

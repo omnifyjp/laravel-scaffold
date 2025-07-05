@@ -3,9 +3,9 @@
 namespace OmnifyJP\LaravelScaffold\Http\Controllers;
 
 use Exception;
-use OmnifyJP\LaravelScaffold\Helpers\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Controller;
+use OmnifyJP\LaravelScaffold\Helpers\Schema;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 

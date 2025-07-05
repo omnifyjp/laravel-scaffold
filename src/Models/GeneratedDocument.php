@@ -3,9 +3,6 @@
 namespace OmnifyJP\LaravelScaffold\Models;
 
 use Exception;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
-use OmnifyJP\LaravelScaffold\Services\FormulaParser;
-use OmnifyJP\LaravelScaffold\Services\SpreadsheetHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
+use OmnifyJP\LaravelScaffold\Services\FormulaParser;
+use OmnifyJP\LaravelScaffold\Services\SpreadsheetHelper;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;

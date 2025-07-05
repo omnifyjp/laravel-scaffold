@@ -3,9 +3,9 @@
 namespace OmnifyJP\LaravelScaffold\Services;
 
 use Exception;
+use Illuminate\Support\Facades\Log;
 use OmnifyJP\LaravelScaffold\Services\Aws\ApiGatewayManagementApiClient;
 use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
-use Illuminate\Support\Facades\Log;
 
 class WebsocketPublisher
 {

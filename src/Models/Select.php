@@ -2,10 +2,10 @@
 
 namespace OmnifyJP\LaravelScaffold\Models;
 
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 /**
  * @property mixed $options

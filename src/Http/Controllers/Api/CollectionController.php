@@ -2,11 +2,11 @@
 
 namespace OmnifyJP\LaravelScaffold\Http\Controllers\Api;
 
-use OmnifyJP\LaravelScaffold\Http\Controllers\BaseController;
-use OmnifyJP\LaravelScaffold\Http\Resources\CollectionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
+use OmnifyJP\LaravelScaffold\Http\Controllers\BaseController;
+use OmnifyJP\LaravelScaffold\Http\Resources\CollectionResource;
 
 class CollectionController extends BaseController
 {

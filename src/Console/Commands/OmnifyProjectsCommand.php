@@ -3,9 +3,9 @@
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use OmnifyJP\LaravelScaffold\OmnifyService;
-use Illuminate\Console\Command;
 
 class OmnifyProjectsCommand extends Command
 {
@@ -18,7 +18,7 @@ class OmnifyProjectsCommand extends Command
      */
     public function handle(): int
     {
-        if (!OmnifyService::verify()) {
+        if (! OmnifyService::verify()) {
             $this->error('No valid authentication token found. Please run omnify:login to login.');
 
             return 1;

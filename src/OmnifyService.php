@@ -9,8 +9,17 @@ use Illuminate\Support\Facades\Http;
 
 class OmnifyService
 {
-    const ENDPOINT = 'https://core.omnify.jp';
-//    const ENDPOINT = 'http://famm-service.test';
+    /**
+     * Get the API endpoint based on environment
+     */
+    public static function getEndpoint(): string
+    {
+        $env = env('OMNIFY_ENV', 'production');
+
+        return $env === 'dev'
+            ? 'http://omnify.test'
+            : 'https://core.omnify.jp';
+    }
 
     /**
      * Check if authentication token exists
@@ -29,6 +38,7 @@ class OmnifyService
 
     /**
      * Verify if the current token is valid
+     *
      * @throws FileNotFoundException
      */
     public static function verify(): bool
@@ -66,7 +76,7 @@ class OmnifyService
 
             $response = Http::withToken($accessToken)
                 ->acceptJson()
-                ->get(self::ENDPOINT.'/api/me');
+                ->get(self::getEndpoint().'/api/me');
 
             return $response->successful() && isset($response->json()['id']);
         } catch (\Exception $e) {
@@ -107,6 +117,7 @@ class OmnifyService
         // Remove timestamp for API request
         $tokenParts = explode('|', $token);
         array_pop($tokenParts);
+
         return implode('|', $tokenParts);
     }
 
@@ -118,7 +129,7 @@ class OmnifyService
         try {
             $response = Http::asForm()
                 ->acceptJson()
-                ->post(self::ENDPOINT.'/api/create-token', [
+                ->post(self::getEndpoint().'/api/create-token', [
                     'email' => $email,
                     'password' => $password,
                 ]);
@@ -142,14 +153,14 @@ class OmnifyService
     public static function getProjects(): ?array
     {
         $accessToken = self::getAccessToken();
-        if (!$accessToken) {
+        if (! $accessToken) {
             return null;
         }
 
         try {
             $response = Http::withToken($accessToken)
                 ->acceptJson()
-                ->get(self::ENDPOINT.'/api/projects');
+                ->get(self::getEndpoint().'/api/projects');
 
             if ($response->successful()) {
                 return $response->json()['data'] ?? $response->json();
@@ -167,14 +178,14 @@ class OmnifyService
     public static function createProject(string $code, string $name): ?array
     {
         $accessToken = self::getAccessToken();
-        if (!$accessToken) {
+        if (! $accessToken) {
             return null;
         }
 
         try {
             $response = Http::withToken($accessToken)
                 ->acceptJson()
-                ->post(self::ENDPOINT.'/api/create-project', [
+                ->post(self::getEndpoint().'/api/create-project', [
                     'code' => $code,
                     'name' => $name,
                 ]);

@@ -2,13 +2,13 @@
 
 namespace OmnifyJP\LaravelScaffold\Models;
 
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 /**
  * @property string $generation_type

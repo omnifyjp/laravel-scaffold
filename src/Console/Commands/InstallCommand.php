@@ -24,8 +24,6 @@ class InstallCommand extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle(): int
     {
@@ -43,9 +41,11 @@ class InstallCommand extends Command
 
         if ($status['success']) {
             $this->info('FAMM Framework installed successfully!');
+
             return CommandAlias::SUCCESS;
         } else {
             $this->error('Failed to install FAMM Framework.');
+
             return CommandAlias::FAILURE;
         }
     }

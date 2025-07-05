@@ -37,7 +37,7 @@ class OmnifyGenerateCommand extends Command
 
         $objects = $generatorService->generateObjects();
 
-        $url = OmnifyService::ENDPOINT . '/api/schema-generate';
+        $url = OmnifyService::getEndpoint().'/api/schema-generate';
 
         try {
             $this->info('Processing...');
@@ -45,20 +45,21 @@ class OmnifyGenerateCommand extends Command
             // Create the HTTP request
             $request = $generatorService->createAuthenticatedRequest($url, $objects, $fresh);
 
-//            $this->info('Connecting to Omnify API');
+            //            $this->info('Connecting to Omnify API');
             $generatorService->showSpinner('  Establishing secure connection', 2);
 
             $response = $request->post($url);
 
             // Process the API response
-            if (!$generatorService->processApiResponse($response)) {
+            if (! $generatorService->processApiResponse($response)) {
                 return;
             }
 
             // Check and process filelist
             $fileListPath = omnify_path('.temp/filelist.json');
-            if (!File::exists($fileListPath)) {
+            if (! File::exists($fileListPath)) {
                 $this->error('filelist.json not found.');
+
                 return;
             }
 
@@ -67,7 +68,7 @@ class OmnifyGenerateCommand extends Command
             }
 
             // Move files
-            if (!$generatorService->moveFilesBasedOnFileList($fileListPath)) {
+            if (! $generatorService->moveFilesBasedOnFileList($fileListPath)) {
                 return;
             }
 
@@ -80,6 +81,7 @@ class OmnifyGenerateCommand extends Command
             }
 
             $this->info('Process completed successfully!');
+
             return;
 
         } catch (\Exception $e) {
@@ -87,6 +89,7 @@ class OmnifyGenerateCommand extends Command
 
             // Clean up in case of error
             $generatorService->cleanup();
+
             return;
         }
     }
@@ -99,12 +102,15 @@ class OmnifyGenerateCommand extends Command
         if (File::exists($this->projectFilePath)) {
             try {
                 $content = File::get($this->projectFilePath);
+
                 return json_decode($content, true) ?? [];
             } catch (\Exception $e) {
-                $this->warn('Failed to read .project file: ' . $e->getMessage());
+                $this->warn('Failed to read .project file: '.$e->getMessage());
+
                 return [];
             }
         }
+
         return [];
     }
 
@@ -118,18 +124,17 @@ class OmnifyGenerateCommand extends Command
             File::put($this->projectFilePath, $jsonContent);
             $this->info('Project data saved to .project file.');
         } catch (\Exception $e) {
-            $this->error('Failed to save project data: ' . $e->getMessage());
+            $this->error('Failed to save project data: '.$e->getMessage());
         }
     }
 
     /**
      * Display a stylish header for the command
-     *
      */
     private function displayHeader(): void
     {
         $version = app('omnifyjp.laravel-scaffold.version');
-        $line = str_repeat('=', strlen("Omnify LaravelScaffold") + 26);
+        $line = str_repeat('=', strlen('Omnify LaravelScaffold') + 26);
 
         $this->newLine();
         $this->line("<fg=blue>{$line}</>");
@@ -140,16 +145,13 @@ class OmnifyGenerateCommand extends Command
 
     /**
      * Display a user-friendly error message for exceptions
-     *
-     * @param \Exception $exception
-     * @return void
      */
     private function displayFriendlyError(\Exception $exception): void
     {
         $this->newLine();
         $this->error('❌ An error occurred during the generation process');
         $this->newLine();
-        
+
         // Check if it's an HTTP exception and provide specific guidance
         if (str_contains($exception->getMessage(), 'cURL error') || str_contains($exception->getMessage(), 'timeout')) {
             $this->line('  <fg=red>Connection Issue:</> Unable to connect to Omnify API');
@@ -175,18 +177,18 @@ class OmnifyGenerateCommand extends Command
             $this->line('    • Wait a few minutes and try again');
             $this->line('    • Check if your schema files are valid');
         } else {
-            $this->line('  <fg=red>Error:</> ' . $exception->getMessage());
+            $this->line('  <fg=red>Error:</> '.$exception->getMessage());
         }
-        
+
         $this->newLine();
         $this->line('  <fg=gray>For technical details, use -v flag for verbose output</> ');
-        
+
         // Show full exception details only in verbose mode
         if ($this->getOutput()->isVerbose()) {
             $this->newLine();
             $this->line('  <fg=gray>Technical Details:</> ');
-            $this->line('  <fg=gray>Exception:</> ' . get_class($exception));
-            $this->line('  <fg=gray>File:</> ' . $exception->getFile() . ':' . $exception->getLine());
+            $this->line('  <fg=gray>Exception:</> '.get_class($exception));
+            $this->line('  <fg=gray>File:</> '.$exception->getFile().':'.$exception->getLine());
             if ($this->getOutput()->isVeryVerbose()) {
                 $this->newLine();
                 $this->line('  <fg=gray>Stack Trace:</> ');
