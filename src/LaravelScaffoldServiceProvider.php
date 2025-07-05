@@ -43,6 +43,11 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
             require_once omnify_path('app/bootstrap.php');
         }
 
+        if (File::exists(omnify_path('bootstrap/omnify.php'))) {
+            require_once omnify_path('bootstrap/omnify.php');
+        }
+
+
         if (File::isDirectory(omnify_path('database/migrations'))) {
             $this->loadMigrationsFrom([
                 omnify_path('database/migrations'),
@@ -92,7 +97,6 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
         $this->app->singleton('omnifyjp.laravel-scaffold.version', function () {
             return $this->getPackageVersion();
         });
-
     }
 
     /**
@@ -113,17 +117,16 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
         // Policies
         try {
-            foreach (glob(omnify_path('app/Policies').'/*.php') as $file) {
-                $policyClass = 'FammApp\\Policies\\'.basename($file, '.php');
-                $modelClass = 'FammApp\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(omnify_path('app/Policies') . '/*.php') as $file) {
+                $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
+                $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
+                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
                 }
             }
         } catch (Exception $exception) {
         }
-
     }
 
     /**
@@ -132,7 +135,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
     protected function getPackageVersion(): string
     {
         $packagePath = dirname(__DIR__, 2);
-        $composerFile = $packagePath.'/composer.json';
+        $composerFile = $packagePath . '/composer.json';
 
         if (file_exists($composerFile)) {
             $composerData = json_decode(file_get_contents($composerFile), true);
