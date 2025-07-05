@@ -30,8 +30,8 @@ class OmnifyGenerateCommand extends Command
 
         // DEV環境の場合、ユーザーに通知
         if (env('OMNIFY_ENV') === 'dev') {
-            $this->warn('⚠️  Running in DEV environment xxx');
-            $this->line('   📡 Endpoint: ' . OmnifyService::getEndpoint());
+            $this->warn('⚠️  Running in DEV environment');
+            $this->line('   📡 Endpoint: '.OmnifyService::getEndpoint());
             $this->newLine();
         }
 
@@ -44,7 +44,7 @@ class OmnifyGenerateCommand extends Command
 
         $objects = $generatorService->generateObjects();
 
-        $url = OmnifyService::getEndpoint() . '/api/schema-generate';
+        $url = OmnifyService::getEndpoint().'/api/schema-generate';
 
         try {
             $this->info('Processing...');
@@ -111,7 +111,7 @@ class OmnifyGenerateCommand extends Command
 
                 return json_decode($content, true) ?? [];
             } catch (\Exception $e) {
-                $this->warn('Failed to read .project file: ' . $e->getMessage());
+                $this->warn('Failed to read .project file: '.$e->getMessage());
 
                 return [];
             }
@@ -130,7 +130,7 @@ class OmnifyGenerateCommand extends Command
             File::put($this->projectFilePath, $jsonContent);
             $this->info('Project data saved to .project file.');
         } catch (\Exception $e) {
-            $this->error('Failed to save project data: ' . $e->getMessage());
+            $this->error('Failed to save project data: '.$e->getMessage());
         }
     }
 
@@ -183,7 +183,7 @@ class OmnifyGenerateCommand extends Command
             $this->line('    • Wait a few minutes and try again');
             $this->line('    • Check if your schema files are valid');
         } else {
-            $this->line('  <fg=red>Error:</> ' . $exception->getMessage());
+            $this->line('  <fg=red>Error:</> '.$exception->getMessage());
         }
 
         $this->newLine();
@@ -193,8 +193,8 @@ class OmnifyGenerateCommand extends Command
         if ($this->getOutput()->isVerbose()) {
             $this->newLine();
             $this->line('  <fg=gray>Technical Details:</> ');
-            $this->line('  <fg=gray>Exception:</> ' . get_class($exception));
-            $this->line('  <fg=gray>File:</> ' . $exception->getFile() . ':' . $exception->getLine());
+            $this->line('  <fg=gray>Exception:</> '.get_class($exception));
+            $this->line('  <fg=gray>File:</> '.$exception->getFile().':'.$exception->getLine());
             if ($this->getOutput()->isVeryVerbose()) {
                 $this->newLine();
                 $this->line('  <fg=gray>Stack Trace:</> ');
