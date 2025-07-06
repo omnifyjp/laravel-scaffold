@@ -40,8 +40,8 @@ class ComposerConfigUpdater
 
         // Add providers
         $providers = [
-            '\FammApp\Providers\ServiceProvider::class',
-            '\FammApp\Providers\RepositoryServiceProvider::class',
+            '\App\Providers\OmnifyServiceProvider::class',
+            '\App\Providers\OmnifyRepositoryServiceProvider::class',
         ];
 
         $changed = false;
@@ -106,11 +106,8 @@ class ComposerConfigUpdater
     protected static function createBaseDirectories(array &$status): void
     {
         $directories = [
-            '.famm/app/Providers',
-            // 注意: .famm/database ディレクトリは作成しない
-            // factories と seeders は Laravel の database/ ディレクトリに直接配置されるため
-            // '.famm/database/factories',
-            // '.famm/database/seeders',
+            // Note: Remove .famm/app/Providers as we now use App\Providers namespace
+            // 注意: App\Providers名前空間を使用するため.famm/app/Providersを削除
         ];
 
         foreach ($directories as $directory) {
@@ -132,74 +129,8 @@ class ComposerConfigUpdater
      */
     protected static function createPlaceholderProviders(array &$status): void
     {
-        $providersPath = base_path('.famm/app/Providers');
-
-        // Service Provider
-        $serviceProviderPath = $providersPath.'/ServiceProvider.php';
-        if (! file_exists($serviceProviderPath)) {
-            $content = <<<'PHP'
-<?php
-
-namespace FammApp\Providers;
-
-use Illuminate\Support\ServiceProvider as BaseServiceProvider;
-
-class ServiceProvider extends BaseServiceProvider
-{
-    /**
-     * Register services.
-     */
-    public function register(): void
-    {
-        // This file is a placeholder and will be overwritten by FAMM schema builder
-    }
-
-    /**
-     * Bootstrap services.
-     */
-    public function boot(): void
-    {
-        //
-    }
-}
-PHP;
-            if (File::put($serviceProviderPath, $content)) {
-                $status['changes'][] = 'Created placeholder ServiceProvider';
-            }
-        }
-
-        // Repository Service Provider
-        $repoProviderPath = $providersPath.'/RepositoryServiceProvider.php';
-        if (! file_exists($repoProviderPath)) {
-            $content = <<<'PHP'
-<?php
-
-namespace FammApp\Providers;
-
-use Illuminate\Support\ServiceProvider;
-
-class RepositoryServiceProvider extends ServiceProvider
-{
-    /**
-     * Register services.
-     */
-    public function register(): void
-    {
-        // This file is a placeholder and will be overwritten by FAMM schema builder
-    }
-
-    /**
-     * Bootstrap services.
-     */
-    public function boot(): void
-    {
-        //
-    }
-}
-PHP;
-            if (File::put($repoProviderPath, $content)) {
-                $status['changes'][] = 'Created placeholder RepositoryServiceProvider';
-            }
-        }
+        // Note: No longer needed as we use App\Providers namespace
+        // 注意: App\Providers名前空間を使用するため不要
+        $status['messages'][] = 'Using App\Providers namespace - no placeholder providers needed';
     }
 }

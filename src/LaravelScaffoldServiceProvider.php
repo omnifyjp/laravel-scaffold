@@ -21,15 +21,9 @@ use OmnifyJP\LaravelScaffold\Installers\ComposerConfigUpdater;
 use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
 use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
 use OmnifyJP\LaravelScaffold\Services\Aws\SnsService;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 
 class LaravelScaffoldServiceProvider extends ServiceProvider
 {
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
@@ -38,15 +32,6 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
         $this->conditionallyRegisterProviders();
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
-
-        if (File::exists(omnify_path('app/bootstrap.php'))) {
-            require_once omnify_path('app/bootstrap.php');
-        }
-
-        if (File::exists(omnify_path('bootstrap/omnify.php'))) {
-            require_once omnify_path('bootstrap/omnify.php');
-        }
-
 
         if (File::isDirectory(omnify_path('database/migrations'))) {
             $this->loadMigrationsFrom([
@@ -105,8 +90,8 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
     protected function conditionallyRegisterProviders(): void
     {
         $providers = [
-            \FammApp\Providers\ServiceProvider::class,
-            \FammApp\Providers\RepositoryServiceProvider::class,
+            \App\Providers\OmnifyServiceProvider::class,
+            \App\Providers\OmnifyRepositoryServiceProvider::class,
         ];
 
         foreach ($providers as $provider) {
@@ -117,12 +102,12 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
         // Policies
         try {
-            foreach (glob(omnify_path('app/Policies') . '/*.php') as $file) {
-                $policyClass = 'FammApp\\Policies\\' . basename($file, '.php');
-                $modelClass = 'FammApp\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(omnify_path('app/Policies').'/*.php') as $file) {
+                $policyClass = 'App\\Policies\\'.basename($file, '.php');
+                $modelClass = 'App\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
+                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
                 }
             }
         } catch (Exception $exception) {
@@ -135,7 +120,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
     protected function getPackageVersion(): string
     {
         $packagePath = dirname(__DIR__, 2);
-        $composerFile = $packagePath . '/composer.json';
+        $composerFile = $packagePath.'/composer.json';
 
         if (file_exists($composerFile)) {
             $composerData = json_decode(file_get_contents($composerFile), true);
