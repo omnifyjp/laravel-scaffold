@@ -9,10 +9,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
-use OmnifyJP\LaravelScaffold\Console\Commands\InstallCommand;
+
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateTypesCommand;
-use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyInstallCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyLoginCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectCreateCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectsCommand;
@@ -51,7 +50,6 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
                 OmnifyProjectsCommand::class,
                 OmnifyProjectCreateCommand::class,
                 OmnifyGenerateTypesCommand::class,
-                OmnifyInstallCommand::class,
                 OmnifyGenerateCommand::class,
             ]);
         }
@@ -59,11 +57,6 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                InstallCommand::class,
-            ]);
-        }
 
         $this->app->singleton(DynamoDBService::class, function (Application $app) {
             return new DynamoDBService;
@@ -89,25 +82,31 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
      */
     protected function conditionallyRegisterProviders(): void
     {
-        $providers = [
-            \App\Providers\OmnifyServiceProvider::class,
-            \App\Providers\OmnifyRepositoryServiceProvider::class,
+        $providersConfig = [
+            [
+                'class' => \App\Omnify\Providers\OmnifyServiceProvider::class,
+                'file' => app_path('Omnify/Providers/OmnifyServiceProvider.php')
+            ],
+            [
+                'class' => \App\Omnify\Providers\OmnifyRepositoryServiceProvider::class,
+                'file' => app_path('Omnify/Providers/OmnifyRepositoryServiceProvider.php')
+            ],
         ];
 
-        foreach ($providers as $provider) {
-            if (class_exists($provider)) {
-                $this->app->register($provider);
+        foreach ($providersConfig as $config) {
+            if (file_exists($config['file']) && class_exists($config['class'])) {
+                $this->app->register($config['class']);
             }
         }
 
         // Policies
         try {
-            foreach (glob(omnify_path('app/Policies').'/*.php') as $file) {
-                $policyClass = 'App\\Policies\\'.basename($file, '.php');
-                $modelClass = 'App\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(omnify_path('app/Omnify/Policies') . '/*.php') as $file) {
+                $policyClass = 'App\\Omnify\\Policies\\' . basename($file, '.php');
+                $modelClass = 'App\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
+                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
                 }
             }
         } catch (Exception $exception) {
@@ -120,7 +119,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
     protected function getPackageVersion(): string
     {
         $packagePath = dirname(__DIR__, 2);
-        $composerFile = $packagePath.'/composer.json';
+        $composerFile = $packagePath . '/composer.json';
 
         if (file_exists($composerFile)) {
             $composerData = json_decode(file_get_contents($composerFile), true);
