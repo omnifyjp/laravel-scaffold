@@ -260,11 +260,11 @@ class OmnifyGeneratorService
         $this->command->info('Preparing for fresh installation');
         $this->showSpinner('  Cleaning existing files', 2);
 
-        // .fammディレクトリから不要なファイルを削除
+        // .omnifyディレクトリから不要なファイルを削除
         File::deleteDirectory(support_omnify_path('app/Models/Base'));
         File::deleteDirectory(support_omnify_path('ts/Models/Base'));
 
-        // .famm/database ディレクトリを完全に削除（古いファイルの残骸を防ぐため）
+        // .omnify/database ディレクトリを完全に削除（古いファイルの残骸を防ぐため）
         $oldDatabasePath = support_omnify_path('database');
         if (File::exists($oldDatabasePath)) {
             File::deleteDirectory($oldDatabasePath);
@@ -307,8 +307,19 @@ class OmnifyGeneratorService
         $progressBar->start();
 
         $stats = [
-            'famm' => ['installed' => [], 'skipped' => [], 'exists' => []],
-            'laravel' => ['installed' => [], 'skipped' => [], 'exists' => []],
+            'Models' => ['installed' => [], 'skipped' => []],
+            'Controllers' => ['installed' => [], 'skipped' => []],
+            'Services' => ['installed' => [], 'skipped' => []],
+            'Repositories' => ['installed' => [], 'skipped' => []],
+            'Requests' => ['installed' => [], 'skipped' => []],
+            'Resources' => ['installed' => [], 'skipped' => []],
+            'Enums' => ['installed' => [], 'skipped' => []],
+            'Policies' => ['installed' => [], 'skipped' => []],
+            'Rules' => ['installed' => [], 'skipped' => []],
+            'Traits' => ['installed' => [], 'skipped' => []],
+            'Migrations' => ['installed' => [], 'skipped' => []],
+            'Routes' => ['installed' => [], 'skipped' => []],
+            'Other' => ['installed' => [], 'skipped' => []],
         ];
 
         foreach ($fileList as $fileInfo) {
@@ -358,10 +369,13 @@ class OmnifyGeneratorService
         $progressBar->finish();
         $this->command->newLine();
 
-        // Move filelist.json to .famm directory after processing
-        $this->moveFileListToFamm($fileListPath, $fileList);
+        // Move filelist.json to .omnify directory after processing
+        $this->moveFileListToOmnify($fileListPath, $fileList);
 
         $this->showInstallationSummary($stats);
+
+        // Clean up temp directory after processing
+        $this->cleanTempDirectory();
 
         return true;
     }
@@ -392,12 +406,12 @@ class OmnifyGeneratorService
                     'replace' => $fileInfo['replace'] ?? false,
                 ];
             } else {
-                // Check if destination_path has .famm/ prefix (insecure format from external API)
+                // Check if destination_path has .omnify/ prefix (insecure format from external API)
                 $destinationPath = $fileInfo['destination_path'];
-                if (str_starts_with($destinationPath, '.famm/')) {
+                if (str_starts_with($destinationPath, '.omnify/')) {
                     $hasLegacyFormat = true; // Mark as legacy to show warning
-                    // Remove .famm/ prefix from destination_path
-                    $destinationPath = substr($destinationPath, 6); // Remove '.famm/'
+                    // Remove .omnify/ prefix from destination_path
+                    $destinationPath = substr($destinationPath, 9); // Remove '.omnify/'
                 }
 
                 $convertedList[] = [
@@ -411,7 +425,7 @@ class OmnifyGeneratorService
         if ($hasLegacyFormat) {
             $this->command->warn('⚠️  Converted legacy filelist format to secure format');
             $this->command->info('   All file operations are now explicitly defined');
-            $this->command->info('   Removed .famm/ prefix from destination paths for security');
+            $this->command->info('   Removed .omnify/ prefix from destination paths for security');
         }
 
         return $convertedList;
@@ -431,49 +445,47 @@ class OmnifyGeneratorService
             return $relativePath; // Return relative path from Laravel base
         }
 
-        // .famm directory files - ALSO return without .famm prefix
-        // The .famm prefix will be added during file processing
-        return $sourcePath; // Return source path as-is for .famm files
+        // .omnify directory files - ALSO return without .omnify prefix
+        // The .omnify prefix will be added during file processing
+        return $sourcePath; // Return source path as-is for .omnify files
     }
 
     /**
-     * Move filelist.json to .famm directory and save in new secure format
+     * Move filelist.json to .omnify directory and save in new secure format
      */
-    private function moveFileListToFamm(string $fileListPath, array $convertedFileList): void
+    private function moveFileListToOmnify(string $fileListPath, array $convertedFileList): void
     {
-        $fammFileListPath = support_omnify_path('filelist.json');
+        $omnifyFileListPath = support_omnify_path('filelist.json');
 
         try {
-            // Ensure .famm directory exists
+            // Ensure .omnify directory exists
             File::makeDirectory(support_omnify_path(''), 0755, true, true);
 
             // Save converted filelist in new secure format
             $jsonContent = json_encode($convertedFileList, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            File::put($fammFileListPath, $jsonContent);
+            File::put($omnifyFileListPath, $jsonContent);
 
-            $this->command->info('✓ Moved filelist.json to .famm directory');
+            $this->command->info('✓ Moved filelist.json to .omnify directory');
             $this->command->info('✓ Saved filelist.json in secure format with explicit destination paths');
 
             if ($this->command->getOutput()->isVerbose()) {
                 $this->command->info("   From: {$fileListPath}");
-                $this->command->info("   To: {$fammFileListPath}");
+                $this->command->info("   To: {$omnifyFileListPath}");
                 $this->command->info('   Format: Secure (source_path + destination_path + replace)');
             }
         } catch (\Exception $e) {
-            $this->command->warn("⚠️  Could not move filelist.json to .famm directory: {$e->getMessage()}");
+            $this->command->warn("⚠️  Could not move filelist.json to .omnify directory: {$e->getMessage()}");
         }
     }
 
     /**
-     * ファイルを処理 (Laravel project files & .famm directory files)
+     * ファイルを処理 (Laravel project files & .omnify directory files)
      * SECURITY: destination_path is REQUIRED - no auto-calculation
      */
     private function processFile(array $fileInfo, string $sourcePath, string $destinationPath, bool $isLaravelFile, array &$stats): void
     {
-        // Add .famm/ prefix for .famm files, keep as-is for Laravel files
-        $actualDestinationPath = $isLaravelFile
-            ? $destinationPath  // Laravel files: use destination_path as-is
-            : '.famm/' . $destinationPath; // .famm files: add .famm/ prefix
+        // All files go directly to Laravel app directory (no .omnify prefix)
+        $actualDestinationPath = $destinationPath;
 
         // Convert relative destination path to absolute path for file operations
         $targetPath = str_starts_with($actualDestinationPath, '/')
@@ -489,33 +501,82 @@ class OmnifyGeneratorService
         $fileName = basename($targetPath);
         $shouldReplace = $fileInfo['replace'] ?? false;
 
-        $statsKey = $isLaravelFile ? 'laravel' : 'famm';
-
-        // Display path should show the actual destination (with .famm/ for .famm files)
-        $displayPath = $actualDestinationPath;
+        // Determine category based on file path for better stats
+        $category = $this->getFileCategory($destinationPath);
 
         if ($shouldReplace || ! File::exists($targetPath)) {
             File::copy($sourcePath, $targetPath, true);
-            $stats[$statsKey]['installed'][] = [
+            $stats[$category]['installed'][] = [
                 'file_name' => $fileName,
-                'full_path' => $displayPath,
+                'full_path' => $actualDestinationPath,
                 'source_path' => $fileInfo['source_path'] ?? $fileInfo['path'],
-                'destination_path' => $destinationPath, // Store original destination_path (without .famm/)
+                'destination_path' => $destinationPath,
             ];
 
             if ($this->command->getOutput()->isVerbose()) {
-                $this->command->info("✓ Installed: {$displayPath}");
+                $this->command->info("✓ Installed: {$actualDestinationPath}");
             }
         } else {
-            $stats[$statsKey]['skipped'][] = [
+            $stats[$category]['skipped'][] = [
                 'file_name' => $fileName,
-                'full_path' => $displayPath,
+                'full_path' => $actualDestinationPath,
                 'source_path' => $fileInfo['source_path'] ?? $fileInfo['path'],
-                'destination_path' => $destinationPath, // Store original destination_path (without .famm/)
+                'destination_path' => $destinationPath,
             ];
 
             if ($this->command->getOutput()->isVerbose()) {
-                $this->command->warn("⚠️  Skipped (exists): {$displayPath}");
+                $this->command->warn("⚠️  Skipped (exists): {$actualDestinationPath}");
+            }
+        }
+    }
+
+    /**
+     * Get file category based on path for better stats organization
+     */
+    private function getFileCategory(string $path): string
+    {
+        if (str_contains($path, '/Models/')) {
+            return 'Models';
+        } elseif (str_contains($path, '/Controllers/')) {
+            return 'Controllers';
+        } elseif (str_contains($path, '/Services/')) {
+            return 'Services';
+        } elseif (str_contains($path, '/Repositories/')) {
+            return 'Repositories';
+        } elseif (str_contains($path, '/Requests/')) {
+            return 'Requests';
+        } elseif (str_contains($path, '/Resources/')) {
+            return 'Resources';
+        } elseif (str_contains($path, '/Enums/')) {
+            return 'Enums';
+        } elseif (str_contains($path, '/Policies/')) {
+            return 'Policies';
+        } elseif (str_contains($path, '/Rules/')) {
+            return 'Rules';
+        } elseif (str_contains($path, '/Traits/')) {
+            return 'Traits';
+        } elseif (str_contains($path, '/migrations/')) {
+            return 'Migrations';
+        } elseif (str_contains($path, '/routes/')) {
+            return 'Routes';
+        } else {
+            return 'Other';
+        }
+    }
+
+    /**
+     * Clean up temp directory after processing
+     */
+    private function cleanTempDirectory(): void
+    {
+        $tempDir = support_omnify_path('.temp');
+
+        if (File::exists($tempDir)) {
+            try {
+                File::deleteDirectory($tempDir);
+                $this->command->info('✓ Cleaned up temporary directory');
+            } catch (\Exception $e) {
+                $this->command->warn("⚠️  Could not clean temp directory: {$e->getMessage()}");
             }
         }
     }
@@ -528,26 +589,33 @@ class OmnifyGeneratorService
         $this->command->info('📦 Installation Summary');
         $this->command->newLine();
 
-        // Laravel files summary
-        $laravelInstalled = count($stats['laravel']['installed']);
-        $laravelSkipped = count($stats['laravel']['skipped']);
+        $totalInstalled = 0;
+        $totalSkipped = 0;
 
-        $this->command->info('🚀 Laravel Project Files:');
-        $this->command->info("   ✓ Installed: {$laravelInstalled}");
-        if ($laravelSkipped > 0) {
-            $this->command->info("   ⚠️  Skipped: {$laravelSkipped}");
+        // Show summary for each category
+        foreach ($stats as $category => $categoryStats) {
+            $installed = count($categoryStats['installed']);
+            $skipped = count($categoryStats['skipped']);
+
+            if ($installed > 0 || $skipped > 0) {
+                $totalInstalled += $installed;
+                $totalSkipped += $skipped;
+
+                $this->command->info("📁 {$category}:");
+                $this->command->info("   ✓ Installed: {$installed}");
+                if ($skipped > 0) {
+                    $this->command->info("   ⚠️  Skipped: {$skipped}");
+                }
+                $this->command->newLine();
+            }
         }
 
-        // .famm files summary
-        $fammInstalled = count($stats['famm']['installed']);
-        $fammSkipped = count($stats['famm']['skipped']);
-
-        $this->command->info('📁 .famm Directory Files:');
-        $this->command->info("   ✓ Installed: {$fammInstalled}");
-        if ($fammSkipped > 0) {
-            $this->command->info("   ⚠️  Skipped: {$fammSkipped}");
+        // Show total summary
+        $this->command->info("🎯 Total Summary:");
+        $this->command->info("   ✓ Total Installed: {$totalInstalled}");
+        if ($totalSkipped > 0) {
+            $this->command->info("   ⚠️  Total Skipped: {$totalSkipped}");
         }
-
         $this->command->newLine();
 
         // Show detailed tables
@@ -559,81 +627,20 @@ class OmnifyGeneratorService
      */
     private function showDetailedFileTables(array $stats): void
     {
-        // Laravel Files Detail Table
-        if (! empty($stats['laravel']['installed']) || ! empty($stats['laravel']['skipped'])) {
-            $this->command->info('🚀 Laravel Project Files Detail:');
-            $this->showFileTable($stats['laravel'], 'Laravel');
-            $this->command->newLine();
-        }
+        $this->command->info('📋 Detailed File Tables:');
+        $this->command->newLine();
 
-        // .famm Files Detail Table - phân chia theo loại file
-        if (! empty($stats['famm']['installed']) || ! empty($stats['famm']['skipped'])) {
-            $this->command->info('📁 .famm Directory Files Detail:');
-
-            // Phân loại files theo extension và thư mục
-            $categorizedFiles = $this->categorizeFiles($stats['famm']);
-
-            foreach ($categorizedFiles as $category => $files) {
-                if (! empty($files['installed']) || ! empty($files['skipped'])) {
-                    $this->command->info("  📂 {$category}:");
-                    $this->showFileTable($files, $category, true);
-                    $this->command->newLine();
-                }
+        // Show table for each category that has files
+        foreach ($stats as $category => $categoryStats) {
+            if (! empty($categoryStats['installed']) || ! empty($categoryStats['skipped'])) {
+                $this->command->info("📂 {$category} Files:");
+                $this->showFileTable($categoryStats, $category);
+                $this->command->newLine();
             }
         }
     }
 
-    /**
-     * Phân loại files theo loại để hiển thị chi tiết hơn
-     */
-    private function categorizeFiles(array $fammStats): array
-    {
-        $categories = [
-            'TypeScript Models' => ['installed' => [], 'skipped' => []],
-            'TypeScript Enums' => ['installed' => [], 'skipped' => []],
-            'PHP Repositories' => ['installed' => [], 'skipped' => []],
-            'PHP Providers' => ['installed' => [], 'skipped' => []],
-            'Other Files' => ['installed' => [], 'skipped' => []],
-        ];
 
-        // Phân loại installed files
-        foreach ($fammStats['installed'] as $fileInfo) {
-            $filePath = $fileInfo['full_path'];
-            $fileName = $fileInfo['file_name'];
-
-            if (str_contains($filePath, '/ts/Models/')) {
-                $categories['TypeScript Models']['installed'][] = $fileInfo;
-            } elseif (str_contains($filePath, '/ts/Enums/')) {
-                $categories['TypeScript Enums']['installed'][] = $fileInfo;
-            } elseif (str_contains($filePath, '/app/Repositories/')) {
-                $categories['PHP Repositories']['installed'][] = $fileInfo;
-            } elseif (str_contains($filePath, '/app/Providers/')) {
-                $categories['PHP Providers']['installed'][] = $fileInfo;
-            } else {
-                $categories['Other Files']['installed'][] = $fileInfo;
-            }
-        }
-
-        // Phân loại skipped files
-        foreach ($fammStats['skipped'] as $fileInfo) {
-            $filePath = $fileInfo['full_path'];
-            $fileName = $fileInfo['file_name'];
-
-            if (str_contains($filePath, '/ts/Models/')) {
-                $categories['TypeScript Models']['skipped'][] = $fileInfo;
-            } elseif (str_contains($filePath, '/ts/Enums/')) {
-                $categories['TypeScript Enums']['skipped'][] = $fileInfo;
-            } elseif (str_contains($filePath, '/app/Repositories/')) {
-                $categories['PHP Repositories']['skipped'][] = $fileInfo;
-            } elseif (str_contains($filePath, '/app/Providers/')) {
-                $categories['PHP Providers']['skipped'][] = $fileInfo;
-            } else {
-                $categories['Other Files']['skipped'][] = $fileInfo;
-            }
-        }
-
-        return $categories;
-    }
 
     /**
      * ファイルテーブルを表示
@@ -998,7 +1005,7 @@ class OmnifyGeneratorService
 
     /**
      * Clean up temporary files
-     * Note: This only removes temporary files, not .famm directory files like filelist.json
+     * Note: This only removes temporary files, not .omnify directory files like filelist.json
      */
     public function cleanup(): void
     {
@@ -1007,12 +1014,8 @@ class OmnifyGeneratorService
             File::delete($this->tempZipFile);
         }
 
-        // Remove temporary output directory (.temp)
-        if (File::exists($this->outputDir)) {
-            File::deleteDirectory($this->outputDir);
-        }
-
-        // Note: .famm directory and its contents (including filelist.json) are preserved
+        // Note: .temp directory is cleaned after processing in cleanTempDirectory()
+        // Note: .omnify directory and its contents (including filelist.json) are preserved
     }
 
     /**
