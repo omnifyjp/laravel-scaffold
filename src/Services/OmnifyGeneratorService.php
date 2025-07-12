@@ -70,9 +70,9 @@ class OmnifyGeneratorService
     public function __construct(Command $command)
     {
         $this->command = $command;
-        $this->baseDir = omnify_path();
-        $this->outputDir = omnify_path('.temp');
-        $this->tempZipFile = omnify_path('.temp/temp.zip');
+        $this->baseDir = support_omnify_path('');
+        $this->outputDir = support_omnify_path('.temp');
+        $this->tempZipFile = support_omnify_path('.temp/temp.zip');
 
         // Ensure output directory exists
         File::makeDirectory($this->outputDir, 0755, true, true);
@@ -84,7 +84,7 @@ class OmnifyGeneratorService
     public function generateObjects(): array
     {
         $objects = [];
-        foreach ([database_path('schemas'), support_path('database/schemas')] as $_directory) {
+        foreach ([database_path('schemas')] as $_directory) {
             if (! File::exists($_directory)) {
                 continue;
             }
@@ -94,7 +94,7 @@ class OmnifyGeneratorService
                         $object = $file->getExtension() === 'json'
                             ? File::json($file)
                             : Yaml::parse(File::get($file));
-                        $objectName = Str::chopEnd($file->getBasename(), '.'.$file->getExtension());
+                        $objectName = Str::chopEnd($file->getBasename(), '.' . $file->getExtension());
                         $objects[$objectName] = [
                             'objectName' => $objectName,
                             ...$object,
@@ -225,7 +225,7 @@ class OmnifyGeneratorService
 
                 foreach ($errors as $index => $error) {
                     $errorNumber = $index + 1;
-                    $separator = str_repeat('=', 15)." #{$errorNumber} ".str_repeat('=', 15);
+                    $separator = str_repeat('=', 15) . " #{$errorNumber} " . str_repeat('=', 15);
 
                     $this->command->line("<fg=yellow>{$separator}</>");
                     $this->command->line($error);
@@ -240,7 +240,7 @@ class OmnifyGeneratorService
             $rawBody = $response->body();
             $this->command->error('❌ PROBLEM: Found 1 error');
             $this->command->newLine();
-            $this->command->line('<fg=yellow>'.str_repeat('=', 15).' error #1 '.str_repeat('=', 15).'</>');
+            $this->command->line('<fg=yellow>' . str_repeat('=', 15) . ' error #1 ' . str_repeat('=', 15) . '</>');
             $this->command->line(! empty($rawBody) ? $rawBody : 'Unknown error occurred');
             $this->command->newLine();
         }
@@ -261,11 +261,11 @@ class OmnifyGeneratorService
         $this->showSpinner('  Cleaning existing files', 2);
 
         // .fammディレクトリから不要なファイルを削除
-        File::deleteDirectory(omnify_path('app/Models/Base'));
-        File::deleteDirectory(omnify_path('ts/Models/Base'));
+        File::deleteDirectory(support_omnify_path('app/Models/Base'));
+        File::deleteDirectory(support_omnify_path('ts/Models/Base'));
 
         // .famm/database ディレクトリを完全に削除（古いファイルの残骸を防ぐため）
-        $oldDatabasePath = omnify_path('database');
+        $oldDatabasePath = support_omnify_path('database');
         if (File::exists($oldDatabasePath)) {
             File::deleteDirectory($oldDatabasePath);
         }
@@ -339,7 +339,7 @@ class OmnifyGeneratorService
                 return false;
             }
 
-            $fullSourcePath = $this->outputDir.'/'.$sourcePath;
+            $fullSourcePath = $this->outputDir . '/' . $sourcePath;
 
             if (! File::exists($fullSourcePath)) {
                 $progressBar->advance();
@@ -441,11 +441,11 @@ class OmnifyGeneratorService
      */
     private function moveFileListToFamm(string $fileListPath, array $convertedFileList): void
     {
-        $fammFileListPath = omnify_path('filelist.json');
+        $fammFileListPath = support_omnify_path('filelist.json');
 
         try {
             // Ensure .famm directory exists
-            File::makeDirectory(omnify_path(), 0755, true, true);
+            File::makeDirectory(support_omnify_path(''), 0755, true, true);
 
             // Save converted filelist in new secure format
             $jsonContent = json_encode($convertedFileList, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -473,7 +473,7 @@ class OmnifyGeneratorService
         // Add .famm/ prefix for .famm files, keep as-is for Laravel files
         $actualDestinationPath = $isLaravelFile
             ? $destinationPath  // Laravel files: use destination_path as-is
-            : '.famm/'.$destinationPath; // .famm files: add .famm/ prefix
+            : '.famm/' . $destinationPath; // .famm files: add .famm/ prefix
 
         // Convert relative destination path to absolute path for file operations
         $targetPath = str_starts_with($actualDestinationPath, '/')
@@ -697,7 +697,7 @@ class OmnifyGeneratorService
         } else {
             // Display compact table với indentation nếu là subcategory
             if ($isCategorized) {
-                $this->command->line('    '.str_repeat('-', 50));
+                $this->command->line('    ' . str_repeat('-', 50));
                 foreach ($tableData as $row) {
                     $this->command->line(sprintf(
                         '    │ %-25s │ %-12s │ %s',
@@ -706,7 +706,7 @@ class OmnifyGeneratorService
                         $row['Full Path']
                     ));
                 }
-                $this->command->line('    '.str_repeat('-', 50));
+                $this->command->line('    ' . str_repeat('-', 50));
             } else {
                 // Display normal table
                 $this->command->table(
@@ -734,7 +734,7 @@ class OmnifyGeneratorService
 
         if (! empty($summaryParts)) {
             $prefix = $isCategorized ? '    📊 ' : '📊 ';
-            $this->command->info("{$prefix}{$category} Summary: ".implode(', ', $summaryParts));
+            $this->command->info("{$prefix}{$category} Summary: " . implode(', ', $summaryParts));
         }
     }
 
@@ -801,7 +801,7 @@ class OmnifyGeneratorService
             File::makeDirectory($omnifyMigrationsPath, 0755, true, true);
 
             $this->command->info('✓ Omnify migrations directory completely cleaned');
-            $this->command->info('  - '.count($deletedFiles).' files deleted (including nested folders)');
+            $this->command->info('  - ' . count($deletedFiles) . ' files deleted (including nested folders)');
 
             if ($this->command->getOutput()->isVerbose()) {
                 foreach ($deletedFiles as $fileName) {
@@ -809,10 +809,10 @@ class OmnifyGeneratorService
                 }
             }
         } catch (\Exception $e) {
-            $this->command->error('Failed to clean omnify migrations directory: '.$e->getMessage());
+            $this->command->error('Failed to clean omnify migrations directory: ' . $e->getMessage());
 
             // Fallback to old logic if directory deletion fails
-            $omnifyMigrationFiles = File::glob($omnifyMigrationsPath.'/*.php');
+            $omnifyMigrationFiles = File::glob($omnifyMigrationsPath . '/*.php');
             foreach ($omnifyMigrationFiles as $filePath) {
                 $fileName = basename($filePath);
                 if (File::delete($filePath)) {
@@ -842,7 +842,7 @@ class OmnifyGeneratorService
         $this->command->info('Cleaning old omnify seeder files');
 
         // omnify生成のシーダーファイルを探す (*Seeder.php、DatabaseSeeder.php以外)
-        $seederFiles = File::glob($seedersPath.'/*Seeder.php');
+        $seederFiles = File::glob($seedersPath . '/*Seeder.php');
         // DatabaseSeeder.phpを除外
         $seederFiles = array_filter($seederFiles, function ($file) {
             return basename($file) !== 'DatabaseSeeder.php';
@@ -945,7 +945,7 @@ class OmnifyGeneratorService
         $lines = explode("\n", $outputText);
         foreach ($lines as $line) {
             if (! empty(trim($line))) {
-                $this->command->line('  <fg=blue>│</> '.$line);
+                $this->command->line('  <fg=blue>│</> ' . $line);
             }
         }
 
@@ -988,7 +988,7 @@ class OmnifyGeneratorService
                 $this->command->info('✓ app/Models/OmnifyBase directory cleaned');
 
                 if ($this->command->getOutput()->isVerbose()) {
-                    $this->command->info('  - '.count($deletedFiles).' files deleted');
+                    $this->command->info('  - ' . count($deletedFiles) . ' files deleted');
                 }
             }
         }
@@ -1033,7 +1033,7 @@ class OmnifyGeneratorService
         }
 
         // スピナーラインをクリア
-        $this->command->getOutput()->write("\r".str_repeat(' ', strlen($message) + 10)."\r");
+        $this->command->getOutput()->write("\r" . str_repeat(' ', strlen($message) + 10) . "\r");
     }
 
     /**
@@ -1054,11 +1054,11 @@ class OmnifyGeneratorService
             $i++;
 
             // ラインをクリア
-            $this->command->getOutput()->write("\r".str_repeat(' ', strlen($message) + 5));
+            $this->command->getOutput()->write("\r" . str_repeat(' ', strlen($message) + 5));
         }
 
         // ラインをクリア
-        $this->command->getOutput()->write("\r".str_repeat(' ', strlen($message) + 5)."\r");
+        $this->command->getOutput()->write("\r" . str_repeat(' ', strlen($message) + 5) . "\r");
     }
 
     /**
@@ -1075,10 +1075,10 @@ class OmnifyGeneratorService
                 'schema.json'
             );
 
-        if (File::exists(omnify_path('omnify.lock'))) {
+        if (File::exists(support_omnify_path('omnify.lock'))) {
             $request->attach(
                 'omnify-lock',
-                File::get(omnify_path('omnify.lock')),
+                File::get(support_omnify_path('omnify.lock')),
                 'omnify.lock'
             );
         }
@@ -1097,8 +1097,8 @@ class OmnifyGeneratorService
             ->withHeader('x-project-secret', $projectSecret)
             ->withBody(json_encode($objects));
 
-        if (File::exists(omnify_path('omnify.lock'))) {
-            $request->attach('lock_file', omnify_path('omnify.lock'), 'omnify.lock');
+        if (File::exists(support_omnify_path('omnify.lock'))) {
+            $request->attach('lock_file', support_omnify_path('omnify.lock'), 'omnify.lock');
         }
 
         return $request;
