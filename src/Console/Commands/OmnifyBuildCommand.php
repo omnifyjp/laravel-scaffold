@@ -10,7 +10,7 @@ use ZipArchive;
 
 class OmnifyBuildCommand extends Command
 {
-    protected $signature = 'omnify:build {--detailed : Show detailed progress tables}';
+    protected $signature = 'omnify:build {--detailed : Show detailed progress tables} {--fresh : Clean up before build (removes lock file, migrations, and OmnifyBase folders)}';
 
     protected $description = 'Build schemas and post to API';
 
@@ -19,6 +19,11 @@ class OmnifyBuildCommand extends Command
     public function handle(): void
     {
         $this->info('🚀 Starting Omnify Build Process...');
+
+        // Fresh cleanup if requested
+        if ($this->option('fresh')) {
+            $this->performFreshCleanup();
+        }
 
         // Step 1: Aggregate schemas with progress bar
         $this->newLine();
@@ -405,5 +410,65 @@ class OmnifyBuildCommand extends Command
         } else {
             $this->info("🎯 All {$totalCopied} files were successfully copied!");
         }
+    }
+
+    private function performFreshCleanup(): void
+    {
+        $this->newLine();
+        $this->info('🧹 Fresh cleanup requested...');
+
+        $cleanupItems = [];
+
+        // 1. Check and remove lock file
+        $lockPaths = [
+            base_path('.omnify/omnify.lock'),
+            base_path('omnify.lock'),
+            storage_path('omnify.lock')
+        ];
+
+        foreach ($lockPaths as $lockPath) {
+            if (File::exists($lockPath)) {
+                File::delete($lockPath);
+                $cleanupItems[] = "✅ Removed lock file: " . str_replace(base_path() . '/', '', $lockPath);
+                break;
+            }
+        }
+
+        // 2. Remove migrations/omnify folder
+        $migrationsPath = database_path('migrations/omnify');
+        if (File::exists($migrationsPath)) {
+            File::deleteDirectory($migrationsPath);
+            $cleanupItems[] = "✅ Removed migrations folder: database/migrations/omnify";
+        }
+
+        // 3. Remove OmnifyBase folders
+        $omnifyBasePaths = [
+            app_path('Models/OmnifyBase'),
+            app_path('Http/Requests/OmnifyBase'),
+            app_path('Omnify/Controllers/OmnifyBase'),
+            app_path('Omnify/Services/OmnifyBase'),
+            app_path('Omnify/Repositories/OmnifyBase'),
+            app_path('Omnify/Requests/OmnifyBase'),
+            app_path('Omnify/Resources/OmnifyBase'),
+            app_path('Omnify/Policies/OmnifyBase'),
+        ];
+
+        foreach ($omnifyBasePaths as $path) {
+            if (File::exists($path)) {
+                File::deleteDirectory($path);
+                $relativePath = str_replace(base_path() . '/', '', $path);
+                $cleanupItems[] = "✅ Removed OmnifyBase folder: {$relativePath}";
+            }
+        }
+
+        if (empty($cleanupItems)) {
+            $this->line("   ℹ️ No cleanup needed - all items were already clean");
+        } else {
+            foreach ($cleanupItems as $item) {
+                $this->line("   {$item}");
+            }
+        }
+
+        $this->info("🧹 Fresh cleanup completed!");
     }
 }
