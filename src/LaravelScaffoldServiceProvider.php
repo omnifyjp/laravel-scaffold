@@ -9,11 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
-use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateCommand;
-use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyGenerateTypesCommand;
-use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyLoginCommand;
-use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectCreateCommand;
-use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyProjectsCommand;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyBuildCommand;
 use OmnifyJP\LaravelScaffold\Helpers\Schema;
 use OmnifyJP\LaravelScaffold\Installers\ComposerConfigUpdater;
 use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
@@ -45,11 +41,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                OmnifyLoginCommand::class,
-                OmnifyProjectsCommand::class,
-                OmnifyProjectCreateCommand::class,
-                OmnifyGenerateTypesCommand::class,
-                OmnifyGenerateCommand::class,
+                OmnifyBuildCommand::class,
             ]);
         }
     }
