@@ -44,7 +44,28 @@ class OmnifyBuildCommand extends Command
         $lockPath = base_path('.omnify/omnify.lock');
         if (File::exists($lockPath)) {
             $omnifyLock = File::get($lockPath);
-            $omnifyLock = mb_convert_encoding($omnifyLock, 'UTF-8', 'UTF-8');
+
+            /**
+             * CRITICAL: Base64 encoding for binary data transmission
+             * 
+             * omnify.lock file contains encrypted binary data that MUST be transmitted safely over HTTP.
+             * 
+             * ❌ NEVER USE: mb_convert_encoding($omnifyLock, 'UTF-8', 'UTF-8')
+             *    - This function treats binary data as text and corrupts it
+             *    - Invalid UTF-8 bytes are replaced with '?' characters
+             *    - Result: Data corruption (e.g., 13504 bytes → 13302 bytes = 202 bytes lost)
+             *    - Error: "omnify.lock is corrupted and cannot be decrypted"
+             * 
+             * ✅ CORRECT APPROACH: base64_encode($omnifyLock)
+             *    - Safely encodes binary data into ASCII text for JSON transmission
+             *    - No data loss or corruption
+             *    - Server side must use base64_decode() to restore original binary data
+             * 
+             * Historical issue: Jul 13, 2025 - mb_convert_encoding caused 202-byte data loss,
+             * making AES-256-CBC decryption fail due to corrupted IV and encrypted content.
+             */
+            $omnifyLock = base64_encode($omnifyLock);
+
             $this->info('✅ omnify.lock loaded');
         } else {
             $this->warn('⚠️ omnify.lock not found');
