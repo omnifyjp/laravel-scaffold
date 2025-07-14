@@ -517,7 +517,7 @@ class OmnifyBuildCommand extends Command
             return;
         }
 
-        // Find PHP files in the extracted directory
+        // Count PHP files for progress indication
         $phpFiles = [];
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($tempExtractPath),
@@ -538,60 +538,52 @@ class OmnifyBuildCommand extends Command
 
         $this->line('   📝 Found ' . count($phpFiles) . ' PHP files to format');
 
-        // Create progress bar for pint process
-        $progressBar = $this->output->createProgressBar(count($phpFiles));
-        $progressBar->setFormat('   🎨 [%bar%] %current%/%max% files formatted (%percent:3s%%) - %message%');
-        $progressBar->setMessage('Starting...');
+        // Create simple progress bar for the single pint process
+        $progressBar = $this->output->createProgressBar(100);
+        $progressBar->setFormat('   🎨 [%bar%] %percent:3s%% - %message%');
+        $progressBar->setMessage('Processing directory with Laravel Pint...');
         $progressBar->start();
 
-        // Run pint on each PHP file
-        $successCount = 0;
-        $errorCount = 0;
+        // Run pint on the entire directory (much faster than individual files)
+        $process = new Process(
+            [$pintPath, $tempExtractPath, '--parallel'], // Use parallel processing
+            $projectRootPath, // Working directory
+            null,
+            null,
+            120 // 2 minutes timeout for directory processing
+        );
 
-        foreach ($phpFiles as $index => $phpFile) {
-            $fileName = basename($phpFile);
-            $progressBar->setMessage("Processing: {$fileName}");
+        try {
+            $process->run(function ($type, $buffer) use ($progressBar) {
+                // Update progress bar during process execution
+                static $progress = 0;
+                $progress = min(90, $progress + 10);
+                $progressBar->setProgress($progress);
+            });
 
-            $process = new Process(
-                [$pintPath, $phpFile],
-                $projectRootPath, // Working directory
-                null,
-                null,
-                60 // 60 seconds timeout
-            );
+            $progressBar->setProgress(100);
+            $progressBar->setMessage('Complete!');
+            $progressBar->finish();
+            $this->newLine();
 
-            try {
-                $process->run();
+            if ($process->isSuccessful()) {
+                $this->info("   ✅ Successfully formatted " . count($phpFiles) . " PHP files");
 
-                if ($process->isSuccessful()) {
-                    $successCount++;
-                    $progressBar->setMessage("✅ {$fileName}");
-                } else {
-                    $errorCount++;
-                    $progressBar->setMessage("❌ {$fileName}");
-                    // Still show warning but don't interrupt progress bar
-                    $this->newLine();
-                    $this->warn('   ⚠️ Pint failed for: ' . str_replace($tempExtractPath, '', $phpFile));
+                // Show pint output if there were any changes
+                $output = trim($process->getOutput());
+                if (!empty($output)) {
+                    $this->line("   📋 Pint output:");
+                    $this->line("   " . str_replace("\n", "\n   ", $output));
                 }
-            } catch (\Exception $e) {
-                $errorCount++;
-                $progressBar->setMessage("❌ {$fileName}");
-                // Still show warning but don't interrupt progress bar
-                $this->newLine();
-                $this->warn('   ⚠️ Error running pint on: ' . str_replace($tempExtractPath, '', $phpFile) . ' - ' . $e->getMessage());
+            } else {
+                $this->warn("   ⚠️ Pint completed with warnings");
+                $this->line("   Error output: " . $process->getErrorOutput());
             }
-
-            $progressBar->advance();
-        }
-
-        $progressBar->setMessage('Complete!');
-        $progressBar->finish();
-        $this->newLine();
-
-        if ($errorCount === 0) {
-            $this->info("   ✅ Successfully formatted {$successCount} PHP files");
-        } else {
-            $this->warn("   ⚠️ Formatted {$successCount} files, {$errorCount} files had errors");
+        } catch (\Exception $e) {
+            $progressBar->setMessage('Error occurred!');
+            $progressBar->finish();
+            $this->newLine();
+            $this->warn('   ⚠️ Error running pint: ' . $e->getMessage());
         }
     }
 }
