@@ -76,9 +76,9 @@ class OmnifyBuildCommand extends Command
             'omnify_lock' => $omnifyLock,
         ];
 
-        $url = app()->environment('production')
-            ? 'https://core.omnify.jp/api/schema/build'
-            : 'http://omnify.test/api/schema/build';
+        $url = env('OMNIFY_ENV') === 'dev'
+            ? 'http://omnify.test/api/schema/build'
+            : 'https://core.omnify.jp/api/schema/build';
 
         // Step 3: API call with progress
         $this->newLine();
