@@ -5,14 +5,14 @@ namespace OmnifyJP\LaravelScaffold\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
-use ZipArchive;
 
 class OmnifyBuildCommand extends Command
 {
-    protected $signature = 'omnify:build {--detailed : Show detailed progress tables} {--fresh : Clean up before build (removes lock file, migrations, and OmnifyBase folders)}';
+    protected $signature = 'omnify:build {--detailed : Show detailed progress tables} {--fresh : Clean up before build (removes lock file, migrations, and OmnifyBase folders)} {--format=true : Run Laravel Pint to format extracted PHP files}';
 
-    protected $description = 'Build schemas and post to API';
+    protected $description = 'Build schemas and post to API. Use --format=false to disable formatting';
 
     private array $statistics = [];
 
@@ -35,7 +35,7 @@ class OmnifyBuildCommand extends Command
         $allSchemas = $this->aggregateAllSchemas($progressBar);
         $progressBar->finish();
         $this->newLine();
-        $this->info("✅ Found " . count($allSchemas) . " schemas");
+        $this->info('✅ Found ' . count($allSchemas) . ' schemas');
 
         // Step 2: Prepare omnify.lock
         $this->newLine();
@@ -47,20 +47,20 @@ class OmnifyBuildCommand extends Command
 
             /**
              * CRITICAL: Base64 encoding for binary data transmission
-             * 
+             *
              * omnify.lock file contains encrypted binary data that MUST be transmitted safely over HTTP.
-             * 
+             *
              * ❌ NEVER USE: mb_convert_encoding($omnifyLock, 'UTF-8', 'UTF-8')
              *    - This function treats binary data as text and corrupts it
              *    - Invalid UTF-8 bytes are replaced with '?' characters
              *    - Result: Data corruption (e.g., 13504 bytes → 13302 bytes = 202 bytes lost)
              *    - Error: "omnify.lock is corrupted and cannot be decrypted"
-             * 
+             *
              * ✅ CORRECT APPROACH: base64_encode($omnifyLock)
              *    - Safely encodes binary data into ASCII text for JSON transmission
              *    - No data loss or corruption
              *    - Server side must use base64_decode() to restore original binary data
-             * 
+             *
              * Historical issue: Jul 13, 2025 - mb_convert_encoding caused 202-byte data loss,
              * making AES-256-CBC decryption fail due to corrupted IV and encrypted content.
              */
@@ -73,7 +73,7 @@ class OmnifyBuildCommand extends Command
 
         $postData = [
             'schemas' => $allSchemas,
-            'omnify_lock' => $omnifyLock
+            'omnify_lock' => $omnifyLock,
         ];
 
         $url = app()->environment('production')
@@ -144,7 +144,7 @@ class OmnifyBuildCommand extends Command
         // Count total files first
         $totalFiles = 0;
         foreach ($schemaPaths as $schemaPath) {
-            if (!File::exists($schemaPath) || !File::isDirectory($schemaPath)) {
+            if (! File::exists($schemaPath) || ! File::isDirectory($schemaPath)) {
                 continue;
             }
             $groupDirectories = File::directories($schemaPath);
@@ -155,7 +155,7 @@ class OmnifyBuildCommand extends Command
         }
 
         foreach ($schemaPaths as $schemaPath) {
-            if (!File::exists($schemaPath) || !File::isDirectory($schemaPath)) {
+            if (! File::exists($schemaPath) || ! File::isDirectory($schemaPath)) {
                 continue;
             }
 
@@ -173,11 +173,11 @@ class OmnifyBuildCommand extends Command
                     $yamlContent = mb_convert_encoding($yamlContent, 'UTF-8', 'UTF-8');
                     $parsedContent = Yaml::parse($yamlContent);
 
-                    if (!isset($parsedContent['objectName'])) {
+                    if (! isset($parsedContent['objectName'])) {
                         $parsedContent['objectName'] = $fileName;
                     }
 
-                    if (!isset($parsedContent['groupName'])) {
+                    if (! isset($parsedContent['groupName'])) {
                         $parsedContent['groupName'] = $groupName;
                     }
 
@@ -199,6 +199,7 @@ class OmnifyBuildCommand extends Command
         }
 
         ksort($result);
+
         return $result;
     }
 
@@ -207,7 +208,7 @@ class OmnifyBuildCommand extends Command
         $tempExtractPath = storage_path('app/temp/omnify-extract');
 
         // Debug zip file info
-        if (!File::exists($zipFilePath)) {
+        if (! File::exists($zipFilePath)) {
             throw new \Exception("Zip file does not exist: {$zipFilePath}");
         }
 
@@ -230,7 +231,7 @@ class OmnifyBuildCommand extends Command
         // Extract zip file
         $zip = new \ZipArchive;
         $result = $zip->open($zipFilePath);
-        if ($result === TRUE) {
+        if ($result === true) {
             $zip->extractTo($tempExtractPath);
             $zip->close();
             $this->line('📦 Zip file extracted');
@@ -238,14 +239,22 @@ class OmnifyBuildCommand extends Command
             throw new \Exception("Failed to extract zip file. Error code: {$result}");
         }
 
+        // Run pint on extracted files (enabled by default, use --format=false to disable)
+        if ($this->option('format') !== false) {
+            $this->runPintOnExtractedFiles($tempExtractPath);
+        } else {
+            $this->newLine();
+            $this->line('⏩ Code formatting skipped (use --format=false to disable)');
+        }
+
         // Read filelist.json
         $filelistPath = $tempExtractPath . '/build/filelist.json';
-        if (!File::exists($filelistPath)) {
+        if (! File::exists($filelistPath)) {
             throw new \Exception('filelist.json not found in build');
         }
 
         $filelist = json_decode(File::get($filelistPath), true);
-        if (!$filelist) {
+        if (! $filelist) {
             throw new \Exception('Invalid filelist.json format');
         }
 
@@ -254,7 +263,7 @@ class OmnifyBuildCommand extends Command
             $totalFiles += count($files);
         }
 
-        $this->line("📋 Processing {$totalFiles} files from filelist (" . count($filelist) . " categories)");
+        $this->line("📋 Processing {$totalFiles} files from filelist (" . count($filelist) . ' categories)');
 
         // Initialize statistics
         $this->statistics = [];
@@ -272,10 +281,8 @@ class OmnifyBuildCommand extends Command
                 'copied' => 0,
                 'skipped' => 0,
                 'total' => count($fileInfos),
-                'files' => []
+                'files' => [],
             ];
-
-
 
             foreach ($fileInfos as $fileInfo) {
                 $sourceFilePath = $tempExtractPath . '/build/' . $fileInfo['path'];
@@ -283,7 +290,7 @@ class OmnifyBuildCommand extends Command
                 $status = 'copied';
                 $skipReason = null;
 
-                if (!File::exists($sourceFilePath)) {
+                if (! File::exists($sourceFilePath)) {
                     $status = 'skipped';
                     $skipReason = 'Source file not found';
                     $this->statistics[$categoryName]['skipped']++;
@@ -291,7 +298,7 @@ class OmnifyBuildCommand extends Command
                     // Check replace flag - if replace=false and destination exists, skip
                     $shouldReplace = $fileInfo['replace'] ?? true; // Default to true if not specified
 
-                    if (!$shouldReplace && File::exists($destinationPath)) {
+                    if (! $shouldReplace && File::exists($destinationPath)) {
                         $status = 'skipped';
                         $skipReason = 'File exists and replace=false';
                         $this->statistics[$categoryName]['skipped']++;
@@ -310,7 +317,7 @@ class OmnifyBuildCommand extends Command
                     'source' => $fileInfo['path'],
                     'destination' => $fileInfo['destination'],
                     'status' => $status,
-                    'skip_reason' => $skipReason
+                    'skip_reason' => $skipReason,
                 ];
 
                 $processedFiles++;
@@ -347,13 +354,13 @@ class OmnifyBuildCommand extends Command
             $statusText = ucfirst($file['status']);
 
             // Add skip reason if file was skipped
-            if ($file['status'] === 'skipped' && !empty($file['skip_reason'])) {
+            if ($file['status'] === 'skipped' && ! empty($file['skip_reason'])) {
                 $statusText .= ' (' . $file['skip_reason'] . ')';
             }
 
             $rows[] = [
                 $file['destination'],
-                $statusIcon . ' ' . $statusText
+                $statusIcon . ' ' . $statusText,
             ];
         }
 
@@ -389,7 +396,7 @@ class OmnifyBuildCommand extends Command
                 $copied,
                 $skipped,
                 $total,
-                $successRate
+                $successRate,
             ];
 
             $totalCopied += $copied;
@@ -404,7 +411,7 @@ class OmnifyBuildCommand extends Command
             "<fg=green>{$totalCopied}</>",
             "<fg=red>{$totalSkipped}</>",
             "<fg=blue>{$totalFiles}</>",
-            "<fg=cyan>{$overallSuccessRate}</>"
+            "<fg=cyan>{$overallSuccessRate}</>",
         ];
 
         $this->table($headers, $rows);
@@ -414,9 +421,9 @@ class OmnifyBuildCommand extends Command
             $skipReasons = [];
             foreach ($this->statistics as $categoryName => $stats) {
                 foreach ($stats['files'] as $file) {
-                    if ($file['status'] === 'skipped' && !empty($file['skip_reason'])) {
+                    if ($file['status'] === 'skipped' && ! empty($file['skip_reason'])) {
                         $reason = $file['skip_reason'];
-                        if (!isset($skipReasons[$reason])) {
+                        if (! isset($skipReasons[$reason])) {
                             $skipReasons[$reason] = 0;
                         }
                         $skipReasons[$reason]++;
@@ -444,13 +451,13 @@ class OmnifyBuildCommand extends Command
         $lockPaths = [
             base_path('.omnify/omnify.lock'),
             base_path('omnify.lock'),
-            storage_path('omnify.lock')
+            storage_path('omnify.lock'),
         ];
 
         foreach ($lockPaths as $lockPath) {
             if (File::exists($lockPath)) {
                 File::delete($lockPath);
-                $cleanupItems[] = "✅ Removed lock file: " . str_replace(base_path() . '/', '', $lockPath);
+                $cleanupItems[] = '✅ Removed lock file: ' . str_replace(base_path() . '/', '', $lockPath);
                 break;
             }
         }
@@ -459,7 +466,7 @@ class OmnifyBuildCommand extends Command
         $migrationsPath = database_path('migrations/omnify');
         if (File::exists($migrationsPath)) {
             File::deleteDirectory($migrationsPath);
-            $cleanupItems[] = "✅ Removed migrations folder: database/migrations/omnify";
+            $cleanupItems[] = '✅ Removed migrations folder: database/migrations/omnify';
         }
 
         // 3. Remove OmnifyBase folders
@@ -483,13 +490,86 @@ class OmnifyBuildCommand extends Command
         }
 
         if (empty($cleanupItems)) {
-            $this->line("   ℹ️ No cleanup needed - all items were already clean");
+            $this->line('   ℹ️ No cleanup needed - all items were already clean');
         } else {
             foreach ($cleanupItems as $item) {
                 $this->line("   {$item}");
             }
         }
 
-        $this->info("🧹 Fresh cleanup completed!");
+        $this->info('🧹 Fresh cleanup completed!');
+    }
+
+    private function runPintOnExtractedFiles(string $tempExtractPath): void
+    {
+        $this->newLine();
+        $this->info('🎨 Running Laravel Pint on extracted files...');
+
+        // Use project root for pint (will use pint.json from project root)
+        $projectRootPath = base_path();
+
+        // Check if pint exists in project root
+        $pintPath = $projectRootPath . '/vendor/bin/pint';
+
+        if (! File::exists($pintPath)) {
+            $this->warn("⚠️ Pint not found at {$pintPath}. Skipping code formatting.");
+
+            return;
+        }
+
+        // Find PHP files in the extracted directory
+        $phpFiles = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($tempExtractPath),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                $phpFiles[] = $file->getPathname();
+            }
+        }
+
+        if (empty($phpFiles)) {
+            $this->line('   ℹ️ No PHP files found to format');
+
+            return;
+        }
+
+        $this->line('   📝 Found ' . count($phpFiles) . ' PHP files to format');
+
+        // Run pint on each PHP file
+        $successCount = 0;
+        $errorCount = 0;
+
+        foreach ($phpFiles as $phpFile) {
+            $process = new Process(
+                [$pintPath, $phpFile],
+                $projectRootPath, // Working directory
+                null,
+                null,
+                60 // 60 seconds timeout
+            );
+
+            try {
+                $process->run();
+
+                if ($process->isSuccessful()) {
+                    $successCount++;
+                } else {
+                    $errorCount++;
+                    $this->warn('   ⚠️ Pint failed for: ' . str_replace($tempExtractPath, '', $phpFile));
+                }
+            } catch (\Exception $e) {
+                $errorCount++;
+                $this->warn('   ⚠️ Error running pint on: ' . str_replace($tempExtractPath, '', $phpFile) . ' - ' . $e->getMessage());
+            }
+        }
+
+        if ($errorCount === 0) {
+            $this->info("   ✅ Successfully formatted {$successCount} PHP files");
+        } else {
+            $this->warn("   ⚠️ Formatted {$successCount} files, {$errorCount} files had errors");
+        }
     }
 }
