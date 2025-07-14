@@ -3,7 +3,6 @@
 namespace OmnifyJP\LaravelScaffold\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 /**
  * @property mixed $value
@@ -12,8 +11,6 @@ use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
  */
 class SelectOption extends Model
 {
-    use UseQuery;
-
     protected $table = '_select_options';
 
     protected $fillable = [

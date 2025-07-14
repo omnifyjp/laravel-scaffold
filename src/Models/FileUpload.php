@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 /**
  * @property string $generation_type
@@ -21,7 +20,6 @@ use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 class FileUpload extends Model
 {
     use SoftDeletes;
-    use UseQuery;
 
     protected $primaryKey = 'id';
 

@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 use OmnifyJP\LaravelScaffold\Services\FormulaParser;
 use OmnifyJP\LaravelScaffold\Services\SpreadsheetHelper;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
@@ -24,7 +23,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 class GeneratedDocument extends Model
 {
     use SoftDeletes;
-    use UseQuery;
 
     protected $primaryKey = 'id';
 

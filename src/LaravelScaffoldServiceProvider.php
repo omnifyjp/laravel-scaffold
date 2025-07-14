@@ -10,7 +10,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyBuildCommand;
-use OmnifyJP\LaravelScaffold\Helpers\Schema;
 use OmnifyJP\LaravelScaffold\Installers\ComposerConfigUpdater;
 use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
 use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
@@ -57,11 +56,11 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
             return new SnsService;
         });
 
-        $this->app->singleton(Schema::class, function (Application $app) {
-            return new Schema;
-        });
+        // $this->app->singleton(Schema::class, function (Application $app) {
+        //     return new Schema;
+        // });
 
-        $this->loadRoutesFrom(__DIR__ . '/../routes/support.php');
+        // $this->loadRoutesFrom(__DIR__ . '/../routes/support.php');
 
         $this->app->singleton('omnifyjp.laravel-scaffold.version', function () {
             return $this->getPackageVersion();
@@ -92,12 +91,12 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
         // Policies
         try {
-            foreach (glob(app_path('Omnify/Policies') . '/*.php') as $file) {
-                $policyClass = 'App\\Omnify\\Policies\\' . basename($file, '.php');
-                $modelClass = 'App\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(app_path('Omnify/Policies').'/*.php') as $file) {
+                $policyClass = 'App\\Omnify\\Policies\\'.basename($file, '.php');
+                $modelClass = 'App\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
+                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
                 }
             }
         } catch (Exception $exception) {
@@ -110,7 +109,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
     protected function getPackageVersion(): string
     {
         $packagePath = dirname(__DIR__, 2);
-        $composerFile = $packagePath . '/composer.json';
+        $composerFile = $packagePath.'/composer.json';
 
         if (file_exists($composerFile)) {
             $composerData = json_decode(file_get_contents($composerFile), true);

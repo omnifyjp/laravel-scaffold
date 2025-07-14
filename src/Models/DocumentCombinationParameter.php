@@ -4,12 +4,9 @@ namespace OmnifyJP\LaravelScaffold\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 class DocumentCombinationParameter extends Model
 {
-    use UseQuery;
-
     protected $table = '_document_combination_parameters';
 
     protected $primaryKey = 'id';

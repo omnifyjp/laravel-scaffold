@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Collection;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 use OmnifyJP\LaravelScaffold\Services\SpreadsheetHelper;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -21,8 +20,6 @@ use Psr\Container\NotFoundExceptionInterface;
  */
 class Document extends Model
 {
-    use UseQuery;
-
     const GENERATION_TYPE_SINGLE = 'SINGLE';
 
     protected $primaryKey = 'id';

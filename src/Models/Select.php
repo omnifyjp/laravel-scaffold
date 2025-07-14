@@ -5,7 +5,6 @@ namespace OmnifyJP\LaravelScaffold\Models;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 /**
  * @property mixed $options
@@ -13,8 +12,6 @@ use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
  */
 class Select extends Model
 {
-    use UseQuery;
-
     protected $table = '_selects';
 
     protected $primaryKey = 'selectName';

@@ -3,7 +3,6 @@
 namespace OmnifyJP\LaravelScaffold\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
 
 /**
  * @property string $generation_type
@@ -11,8 +10,6 @@ use OmnifyJP\LaravelScaffold\Models\Traits\UseQuery;
  */
 class DocumentField extends Model
 {
-    use UseQuery;
-
     const ACTION_TYPE_ACTION_TYPE_REPLACE = 'REPLACE';
 
     const ACTION_TYPE_ACTION_TYPE_VISIBILITY = 'VISIBILITY';
