@@ -538,11 +538,20 @@ class OmnifyBuildCommand extends Command
 
         $this->line('   📝 Found ' . count($phpFiles) . ' PHP files to format');
 
+        // Create progress bar for pint process
+        $progressBar = $this->output->createProgressBar(count($phpFiles));
+        $progressBar->setFormat('   🎨 [%bar%] %current%/%max% files formatted (%percent:3s%%) - %message%');
+        $progressBar->setMessage('Starting...');
+        $progressBar->start();
+
         // Run pint on each PHP file
         $successCount = 0;
         $errorCount = 0;
 
-        foreach ($phpFiles as $phpFile) {
+        foreach ($phpFiles as $index => $phpFile) {
+            $fileName = basename($phpFile);
+            $progressBar->setMessage("Processing: {$fileName}");
+
             $process = new Process(
                 [$pintPath, $phpFile],
                 $projectRootPath, // Working directory
@@ -556,15 +565,28 @@ class OmnifyBuildCommand extends Command
 
                 if ($process->isSuccessful()) {
                     $successCount++;
+                    $progressBar->setMessage("✅ {$fileName}");
                 } else {
                     $errorCount++;
+                    $progressBar->setMessage("❌ {$fileName}");
+                    // Still show warning but don't interrupt progress bar
+                    $this->newLine();
                     $this->warn('   ⚠️ Pint failed for: ' . str_replace($tempExtractPath, '', $phpFile));
                 }
             } catch (\Exception $e) {
                 $errorCount++;
+                $progressBar->setMessage("❌ {$fileName}");
+                // Still show warning but don't interrupt progress bar
+                $this->newLine();
                 $this->warn('   ⚠️ Error running pint on: ' . str_replace($tempExtractPath, '', $phpFile) . ' - ' . $e->getMessage());
             }
+
+            $progressBar->advance();
         }
+
+        $progressBar->setMessage('Complete!');
+        $progressBar->finish();
+        $this->newLine();
 
         if ($errorCount === 0) {
             $this->info("   ✅ Successfully formatted {$successCount} PHP files");
