@@ -10,9 +10,9 @@ use Symfony\Component\Yaml\Yaml;
 
 class OmnifyBuildCommand extends Command
 {
-    protected $signature = 'omnify:build {--detailed : Show detailed progress tables} {--fresh : Clean up before build (removes lock file, migrations, and OmnifyBase folders)} {--format=true : Run Laravel Pint to format extracted PHP files}';
+    protected $signature = 'omnify:build {--detailed : Show detailed progress tables} {--fresh : Clean up before build (removes lock file, migrations, and OmnifyBase folders)} {--format=true : Run Laravel Pint to format extracted PHP files} {--skip-format : Skip code formatting entirely}';
 
-    protected $description = 'Build schemas and post to API. Use --format=false to disable formatting';
+    protected $description = 'Build schemas and post to API. Use --skip-format to disable formatting';
 
     private array $statistics = [];
 
@@ -239,12 +239,15 @@ class OmnifyBuildCommand extends Command
             throw new \Exception("Failed to extract zip file. Error code: {$result}");
         }
 
-        // Run pint on extracted files (enabled by default, use --format=false to disable)
-        if ($this->option('format') !== false) {
+        // Run pint on extracted files (enabled by default, use --skip-format to disable)
+        if ($this->option('skip-format')) {
+            $this->newLine();
+            $this->line('⏩ Code formatting skipped (--skip-format enabled)');
+        } elseif ($this->option('format') !== false) {
             $this->runPintOnExtractedFiles($tempExtractPath);
         } else {
             $this->newLine();
-            $this->line('⏩ Code formatting skipped (use --format=false to disable)');
+            $this->line('⏩ Code formatting skipped (--format=false)');
         }
 
         // Read filelist.json
