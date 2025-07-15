@@ -20,11 +20,6 @@ class OmnifyBuildCommand extends Command
     {
         $this->info('🚀 Starting Omnify Build Process...');
 
-        // Fresh cleanup if requested
-        if ($this->option('fresh')) {
-            $this->performFreshCleanup();
-        }
-
         // Step 1: Aggregate schemas with progress bar
         $this->newLine();
         $this->info('📂 Step 1/4: Aggregating schemas...');
@@ -35,7 +30,7 @@ class OmnifyBuildCommand extends Command
         $allSchemas = $this->aggregateAllSchemas($progressBar);
         $progressBar->finish();
         $this->newLine();
-        $this->info('✅ Found '.count($allSchemas).' schemas');
+        $this->info('✅ Found ' . count($allSchemas) . ' schemas');
 
         // Step 2: Prepare omnify.lock
         $this->newLine();
@@ -149,7 +144,7 @@ class OmnifyBuildCommand extends Command
             }
             $groupDirectories = File::directories($schemaPath);
             foreach ($groupDirectories as $groupDir) {
-                $yamlFiles = File::glob($groupDir.'/*.yaml');
+                $yamlFiles = File::glob($groupDir . '/*.yaml');
                 $totalFiles += count($yamlFiles);
             }
         }
@@ -163,11 +158,11 @@ class OmnifyBuildCommand extends Command
 
             foreach ($groupDirectories as $groupDir) {
                 $groupName = basename($groupDir);
-                $yamlFiles = File::glob($groupDir.'/*.yaml');
+                $yamlFiles = File::glob($groupDir . '/*.yaml');
 
                 foreach ($yamlFiles as $yamlFile) {
                     $fileName = basename($yamlFile, '.yaml');
-                    $relativePath = str_replace(base_path().'/', '', $yamlFile);
+                    $relativePath = str_replace(base_path() . '/', '', $yamlFile);
 
                     $yamlContent = File::get($yamlFile);
                     $yamlContent = mb_convert_encoding($yamlContent, 'UTF-8', 'UTF-8');
@@ -250,8 +245,13 @@ class OmnifyBuildCommand extends Command
             $this->line('⏩ Code formatting skipped (--format=false)');
         }
 
+        // Fresh cleanup if requested - performed after successful extraction but before file distribution
+        if ($this->option('fresh')) {
+            $this->performFreshCleanup();
+        }
+
         // Read filelist.json
-        $filelistPath = $tempExtractPath.'/build/filelist.json';
+        $filelistPath = $tempExtractPath . '/build/filelist.json';
         if (! File::exists($filelistPath)) {
             throw new \Exception('filelist.json not found in build');
         }
@@ -266,7 +266,7 @@ class OmnifyBuildCommand extends Command
             $totalFiles += count($files);
         }
 
-        $this->line("📋 Processing {$totalFiles} files from filelist (".count($filelist).' categories)');
+        $this->line("📋 Processing {$totalFiles} files from filelist (" . count($filelist) . ' categories)');
 
         // Initialize statistics
         $this->statistics = [];
@@ -288,7 +288,7 @@ class OmnifyBuildCommand extends Command
             ];
 
             foreach ($fileInfos as $fileInfo) {
-                $sourceFilePath = $tempExtractPath.'/build/'.$fileInfo['path'];
+                $sourceFilePath = $tempExtractPath . '/build/' . $fileInfo['path'];
                 $destinationPath = base_path($fileInfo['destination']);
                 $status = 'copied';
                 $skipReason = null;
@@ -358,12 +358,12 @@ class OmnifyBuildCommand extends Command
 
             // Add skip reason if file was skipped
             if ($file['status'] === 'skipped' && ! empty($file['skip_reason'])) {
-                $statusText .= ' ('.$file['skip_reason'].')';
+                $statusText .= ' (' . $file['skip_reason'] . ')';
             }
 
             $rows[] = [
                 $file['destination'],
-                $statusIcon.' '.$statusText,
+                $statusIcon . ' ' . $statusText,
             ];
         }
 
@@ -392,7 +392,7 @@ class OmnifyBuildCommand extends Command
             $copied = $stats['copied'];
             $skipped = $stats['skipped'];
             $total = $stats['total'];
-            $successRate = $total > 0 ? round(($copied / $total) * 100, 1).'%' : '0%';
+            $successRate = $total > 0 ? round(($copied / $total) * 100, 1) . '%' : '0%';
 
             $rows[] = [
                 $categoryName,
@@ -408,7 +408,7 @@ class OmnifyBuildCommand extends Command
         }
 
         // Add total row
-        $overallSuccessRate = $totalFiles > 0 ? round(($totalCopied / $totalFiles) * 100, 1).'%' : '0%';
+        $overallSuccessRate = $totalFiles > 0 ? round(($totalCopied / $totalFiles) * 100, 1) . '%' : '0%';
         $rows[] = [
             '<fg=yellow>TOTAL</>',
             "<fg=green>{$totalCopied}</>",
@@ -460,7 +460,7 @@ class OmnifyBuildCommand extends Command
         foreach ($lockPaths as $lockPath) {
             if (File::exists($lockPath)) {
                 File::delete($lockPath);
-                $cleanupItems[] = '✅ Removed lock file: '.str_replace(base_path().'/', '', $lockPath);
+                $cleanupItems[] = '✅ Removed lock file: ' . str_replace(base_path() . '/', '', $lockPath);
                 break;
             }
         }
@@ -487,7 +487,7 @@ class OmnifyBuildCommand extends Command
         foreach ($omnifyBasePaths as $path) {
             if (File::exists($path)) {
                 File::deleteDirectory($path);
-                $relativePath = str_replace(base_path().'/', '', $path);
+                $relativePath = str_replace(base_path() . '/', '', $path);
                 $cleanupItems[] = "✅ Removed OmnifyBase folder: {$relativePath}";
             }
         }
@@ -512,7 +512,7 @@ class OmnifyBuildCommand extends Command
         $projectRootPath = base_path();
 
         // Check if pint exists in project root
-        $pintPath = $projectRootPath.'/vendor/bin/pint';
+        $pintPath = $projectRootPath . '/vendor/bin/pint';
 
         if (! File::exists($pintPath)) {
             $this->warn("⚠️ Pint not found at {$pintPath}. Skipping code formatting.");
@@ -539,7 +539,7 @@ class OmnifyBuildCommand extends Command
             return;
         }
 
-        $this->line('   📝 Found '.count($phpFiles).' PHP files to format');
+        $this->line('   📝 Found ' . count($phpFiles) . ' PHP files to format');
 
         // Create simple progress bar for the single pint process
         $progressBar = $this->output->createProgressBar(100);
@@ -570,23 +570,23 @@ class OmnifyBuildCommand extends Command
             $this->newLine();
 
             if ($process->isSuccessful()) {
-                $this->info('   ✅ Successfully formatted '.count($phpFiles).' PHP files');
+                $this->info('   ✅ Successfully formatted ' . count($phpFiles) . ' PHP files');
 
                 // Show pint output if there were any changes
                 $output = trim($process->getOutput());
                 if (! empty($output)) {
                     $this->line('   📋 Pint output:');
-                    $this->line('   '.str_replace("\n", "\n   ", $output));
+                    $this->line('   ' . str_replace("\n", "\n   ", $output));
                 }
             } else {
                 $this->warn('   ⚠️ Pint completed with warnings');
-                $this->line('   Error output: '.$process->getErrorOutput());
+                $this->line('   Error output: ' . $process->getErrorOutput());
             }
         } catch (\Exception $e) {
             $progressBar->setMessage('Error occurred!');
             $progressBar->finish();
             $this->newLine();
-            $this->warn('   ⚠️ Error running pint: '.$e->getMessage());
+            $this->warn('   ⚠️ Error running pint: ' . $e->getMessage());
         }
     }
 }
