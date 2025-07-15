@@ -35,6 +35,16 @@ class OmnifyBuildCommand extends Command
         // Step 2: Prepare omnify.lock
         $this->newLine();
         $this->info('🔒 Step 2/4: Reading omnify.lock...');
+
+        // Delete omnify.lock first if --fresh is requested to force regeneration
+        if ($this->option('fresh')) {
+            $lockPath = base_path('.omnify/omnify.lock');
+            if (File::exists($lockPath)) {
+                File::delete($lockPath);
+                $this->line('🧹 Deleted omnify.lock for fresh build');
+            }
+        }
+
         $omnifyLock = null;
         $lockPath = base_path('.omnify/omnify.lock');
         if (File::exists($lockPath)) {
@@ -261,6 +271,12 @@ class OmnifyBuildCommand extends Command
             throw new \Exception('Invalid filelist.json format');
         }
 
+        // Debug: Show all categories
+        $this->line("🔍 DEBUG: All categories in filelist:");
+        foreach ($filelist as $categoryName => $files) {
+            $this->line("   - {$categoryName}: " . count($files) . " files");
+        }
+
         $totalFiles = 0;
         foreach ($filelist as $category => $files) {
             $totalFiles += count($files);
@@ -280,6 +296,11 @@ class OmnifyBuildCommand extends Command
 
         // Distribute files according to filelist
         foreach ($filelist as $categoryName => $fileInfos) {
+            // Debug logging for Migrations category
+            if ($categoryName === 'Migrations') {
+                $this->line("🔍 DEBUG: Processing Migrations category with " . count($fileInfos) . " files");
+            }
+
             $this->statistics[$categoryName] = [
                 'copied' => 0,
                 'skipped' => 0,
@@ -293,10 +314,22 @@ class OmnifyBuildCommand extends Command
                 $status = 'copied';
                 $skipReason = null;
 
+                // Debug logging for Migrations
+                if ($categoryName === 'Migrations') {
+                    $this->line("🔍 DEBUG: Checking migration file:");
+                    $this->line("   Source: {$sourceFilePath}");
+                    $this->line("   Exists: " . (File::exists($sourceFilePath) ? 'YES' : 'NO'));
+                    $this->line("   Destination: {$destinationPath}");
+                }
+
                 if (! File::exists($sourceFilePath)) {
                     $status = 'skipped';
                     $skipReason = 'Source file not found';
                     $this->statistics[$categoryName]['skipped']++;
+
+                    if ($categoryName === 'Migrations') {
+                        $this->line("🔍 DEBUG: Migration source file not found!");
+                    }
                 } else {
                     // Check replace flag - if replace=false and destination exists, skip
                     $shouldReplace = $fileInfo['replace'] ?? true; // Default to true if not specified
@@ -312,6 +345,10 @@ class OmnifyBuildCommand extends Command
                         // Copy file to destination
                         File::copy($sourceFilePath, $destinationPath);
                         $this->statistics[$categoryName]['copied']++;
+
+                        if ($categoryName === 'Migrations') {
+                            $this->line("🔍 DEBUG: Migration copied successfully!");
+                        }
                     }
                 }
 
@@ -450,29 +487,14 @@ class OmnifyBuildCommand extends Command
 
         $cleanupItems = [];
 
-        // 1. Check and remove lock file
-        $lockPaths = [
-            base_path('.omnify/omnify.lock'),
-            base_path('omnify.lock'),
-            storage_path('omnify.lock'),
-        ];
-
-        foreach ($lockPaths as $lockPath) {
-            if (File::exists($lockPath)) {
-                File::delete($lockPath);
-                $cleanupItems[] = '✅ Removed lock file: ' . str_replace(base_path() . '/', '', $lockPath);
-                break;
-            }
-        }
-
-        // 2. Remove migrations/omnify folder
+        // 1. Remove migrations/omnify folder (lock file deletion moved to before API call)
         $migrationsPath = database_path('migrations/omnify');
         if (File::exists($migrationsPath)) {
             File::deleteDirectory($migrationsPath);
             $cleanupItems[] = '✅ Removed migrations folder: database/migrations/omnify';
         }
 
-        // 3. Remove OmnifyBase folders
+        // 2. Remove OmnifyBase folders
         $omnifyBasePaths = [
             app_path('Models/OmnifyBase'),
             app_path('Http/Requests/OmnifyBase'),
