@@ -93,12 +93,12 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
         // Policies
         try {
-            foreach (glob(app_path('Omnify/Policies') . '/*.php') as $file) {
-                $policyClass = 'App\\Omnify\\Policies\\' . basename($file, '.php');
-                $modelClass = 'App\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(app_path('Omnify/Policies').'/*.php') as $file) {
+                $policyClass = 'App\\Omnify\\Policies\\'.basename($file, '.php');
+                $modelClass = 'App\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
+                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
                 }
             }
         } catch (Exception $exception) {
@@ -111,7 +111,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
     protected function getPackageVersion(): string
     {
         $packagePath = dirname(__DIR__, 2);
-        $composerFile = $packagePath . '/composer.json';
+        $composerFile = $packagePath.'/composer.json';
 
         if (file_exists($composerFile)) {
             $composerData = json_decode(file_get_contents($composerFile), true);

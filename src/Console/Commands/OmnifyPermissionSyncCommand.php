@@ -3,10 +3,6 @@
 namespace OmnifyJP\LaravelScaffold\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Schema;
-use App\Models\Permission;
-use App\Models\PermissionGroup;
 
 class OmnifyPermissionSyncCommand extends Command
 {
@@ -27,7 +23,7 @@ class OmnifyPermissionSyncCommand extends Command
         'viewAny',
         'view',
         'attach',
-        'detach'
+        'detach',
     ];
 
     public function handle(): void
@@ -36,6 +32,6 @@ class OmnifyPermissionSyncCommand extends Command
         $this->warn('⚠️  This command is deprecated. The system now uses YAML schemas for permissions.');
         $this->info('📝 Permissions are automatically generated from YAML schemas during omnify:build');
         $this->info('✅ No action needed. Permission system works through YAML schemas.');
-        return;
+
     }
 }
