@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyBuildCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyPermissionSyncCommand;
+use OmnifyJP\LaravelScaffold\Console\Commands\OmnifySyncCommand;
 use OmnifyJP\LaravelScaffold\Installers\ComposerConfigUpdater;
 use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
 use OmnifyJP\LaravelScaffold\Services\Aws\DynamoDBService;
@@ -43,6 +44,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
             $this->commands([
                 OmnifyBuildCommand::class,
                 OmnifyPermissionSyncCommand::class,
+                OmnifySyncCommand::class,
             ]);
         }
     }
@@ -89,12 +91,12 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
 
         // Policies
         try {
-            foreach (glob(app_path('Omnify/Policies') . '/*.php') as $file) {
-                $policyClass = 'App\\Omnify\\Policies\\' . basename($file, '.php');
-                $modelClass = 'App\\Models\\' . Str::chopEnd(basename($file, '.php'), 'Policy');
+            foreach (glob(app_path('Omnify/Policies').'/*.php') as $file) {
+                $policyClass = 'App\\Omnify\\Policies\\'.basename($file, '.php');
+                $modelClass = 'App\\Models\\'.Str::chopEnd(basename($file, '.php'), 'Policy');
                 if (class_exists($modelClass) && class_exists($policyClass)) {
                     Gate::policy($modelClass, $policyClass);
-                    Gate::policy('\\' . $modelClass, '\\' . $policyClass);
+                    Gate::policy('\\'.$modelClass, '\\'.$policyClass);
                 }
             }
         } catch (Exception $exception) {
@@ -107,7 +109,7 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
     protected function getPackageVersion(): string
     {
         $packagePath = dirname(__DIR__, 2);
-        $composerFile = $packagePath . '/composer.json';
+        $composerFile = $packagePath.'/composer.json';
 
         if (file_exists($composerFile)) {
             $composerData = json_decode(file_get_contents($composerFile), true);
