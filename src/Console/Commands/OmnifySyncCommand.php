@@ -7,12 +7,13 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
 
 class OmnifySyncCommand extends Command
 {
-    protected $signature = 'omnify:sync {--detailed : Show detailed progress tables} {--fresh : Clean up before sync (removes lock file, migrations, and OmnifyBase folders)} {--format=true : Run Laravel Pint to format downloaded PHP files} {--skip-format : Skip code formatting entirely}';
+    protected $signature = 'omnify:sync {--detailed : Show detailed progress tables} {--format=true : Run Laravel Pint to format downloaded PHP files} {--skip-format : Skip code formatting entirely}';
 
-    protected $description = 'Sync schemas from cloud server using project ID and key. Use --skip-format to disable formatting';
+    protected $description = 'Sync schemas from cloud server using project ID and key. Note: Use web UI to reset/fresh project state on server';
 
     private array $statistics = [];
 
@@ -42,30 +43,21 @@ class OmnifySyncCommand extends Command
         $this->line("📋 Project ID: {$projectId}");
         $this->line('🔑 Project Key: ' . substr($projectKey, 0, 8) . '...' . substr($projectKey, -4));
 
-        // Step 2: Prepare omnify.lock
+        // Step 2: Aggregate schemas with progress bar
         $this->newLine();
-        $this->info('🔒 Step 2/5: Reading omnify.lock...');
+        $this->info('📂 Step 2/5: Aggregating schemas...');
+        $progressBar = $this->output->createProgressBar(100);
+        $progressBar->setFormat('verbose');
+        $progressBar->start();
 
-        // Delete omnify.lock first if --fresh is requested to force regeneration
-        if ($this->option('fresh')) {
-            $lockPath = base_path('.omnify/omnify.lock');
-            if (File::exists($lockPath)) {
-                File::delete($lockPath);
-                $this->line('🧹 Deleted omnify.lock for fresh sync');
-            }
-        }
-
-        $omnifyLock = null;
-        $lockPath = base_path('.omnify/omnify.lock');
-        if (File::exists($lockPath)) {
-            $omnifyLock = File::get($lockPath);
-            $omnifyLock = base64_encode($omnifyLock);
-            $this->info('✅ omnify.lock loaded');
-        } else {
-            $this->warn('⚠️ omnify.lock not found - will perform initial sync');
-        }
+        $allSchemas = $this->aggregateAllSchemas($progressBar);
+        $progressBar->finish();
+        $this->newLine();
+        $this->info('✅ Found ' . count($allSchemas) . ' schemas');
 
         // Step 3: Read omnify config
+        $this->newLine();
+        $this->info('⚙️  Step 3/5: Reading config...');
         $config = [];
         $configPath = base_path('.omnify/config.php');
         if (File::exists($configPath)) {
@@ -91,10 +83,11 @@ class OmnifySyncCommand extends Command
         }
 
         // Prepare request data with authentication
+        // Note: omnify.lock is managed by server, not sent from client
         $postData = [
             'project_id' => $projectId,
             'project_key' => $projectKey,
-            'omnify_lock' => $omnifyLock,
+            'schemas' => $allSchemas,
             'config' => $config,
             'sync_mode' => true, // Indicate this is a sync request
         ];
@@ -105,7 +98,7 @@ class OmnifySyncCommand extends Command
 
         // Step 4: API call to sync with cloud
         $this->newLine();
-        $this->info('☁️ Step 3/5: Syncing with cloud server...');
+        $this->info('☁️ Step 4/5: Syncing with cloud server...');
         $this->line("🔗 Endpoint: {$url}");
 
         $progressBar = $this->output->createProgressBar(100);
@@ -155,13 +148,8 @@ class OmnifySyncCommand extends Command
             try {
                 // Step 5: Extract and distribute files
                 $this->newLine();
-                $this->info('📦 Step 4/5: Extracting and distributing synced files...');
+                $this->info('📦 Step 5/5: Extracting and distributing synced files...');
                 $this->extractAndDistributeFiles($tempZipPath);
-
-                // Step 6: Download and save cloud schemas if included
-                $this->newLine();
-                $this->info('📥 Step 5/5: Processing cloud schemas...');
-                $this->processCloudSchemas($tempZipPath);
 
                 // Show final statistics
                 $this->showFinalStatistics();
@@ -201,12 +189,6 @@ class OmnifySyncCommand extends Command
         }
     }
 
-    private function processCloudSchemas(string $zipPath): void
-    {
-        // This would be implemented if the cloud server includes schema files
-        // For now, we'll just log that schemas were processed
-        $this->line('✅ Cloud schemas processed successfully');
-    }
 
     private function extractAndDistributeFiles(string $zipFilePath): void
     {
@@ -254,11 +236,6 @@ class OmnifySyncCommand extends Command
             } else {
                 $this->newLine();
                 $this->line('⏩ Code formatting skipped (--format=false)');
-            }
-
-            // Fresh cleanup if requested
-            if ($this->option('fresh')) {
-                $this->performFreshCleanup();
             }
 
             // Read filelist.json
@@ -462,51 +439,6 @@ class OmnifySyncCommand extends Command
         }
     }
 
-    private function performFreshCleanup(): void
-    {
-        $this->newLine();
-        $this->info('🧹 Fresh cleanup requested...');
-
-        $cleanupItems = [];
-
-        // Remove migrations/omnify folder
-        $migrationsPath = database_path('migrations/omnify');
-        if (File::exists($migrationsPath)) {
-            File::deleteDirectory($migrationsPath);
-            $cleanupItems[] = '✅ Removed migrations folder: database/migrations/omnify';
-        }
-
-        // Remove OmnifyBase folders
-        $omnifyBasePaths = [
-            app_path('Models/OmnifyBase'),
-            app_path('Http/Requests/OmnifyBase'),
-            app_path('Omnify/Controllers/OmnifyBase'),
-            app_path('Omnify/Services/OmnifyBase'),
-            app_path('Omnify/Repositories/OmnifyBase'),
-            app_path('Omnify/Requests/OmnifyBase'),
-            app_path('Omnify/Resources/OmnifyBase'),
-            app_path('Omnify/Policies/OmnifyBase'),
-        ];
-
-        foreach ($omnifyBasePaths as $path) {
-            if (File::exists($path)) {
-                File::deleteDirectory($path);
-                $relativePath = str_replace(base_path() . '/', '', $path);
-                $cleanupItems[] = "✅ Removed OmnifyBase folder: {$relativePath}";
-            }
-        }
-
-        if (empty($cleanupItems)) {
-            $this->line('   ℹ️ No cleanup needed - all items were already clean');
-        } else {
-            foreach ($cleanupItems as $item) {
-                $this->line("   {$item}");
-            }
-        }
-
-        $this->info('🧹 Fresh cleanup completed!');
-    }
-
     private function runPintOnExtractedFiles(string $tempExtractPath): void
     {
         $this->newLine();
@@ -587,5 +519,76 @@ class OmnifySyncCommand extends Command
             $this->newLine();
             $this->warn('   ⚠️ Error running pint: ' . $e->getMessage());
         }
+    }
+
+    private function aggregateAllSchemas($progressBar = null): array
+    {
+        $result = [];
+        $processedFiles = 0;
+
+        $schemaPaths = [
+            base_path('database/schemas'),
+        ];
+
+        // Count total files first
+        $totalFiles = 0;
+        foreach ($schemaPaths as $schemaPath) {
+            if (! File::exists($schemaPath) || ! File::isDirectory($schemaPath)) {
+                continue;
+            }
+            $groupDirectories = File::directories($schemaPath);
+            foreach ($groupDirectories as $groupDir) {
+                $yamlFiles = File::glob($groupDir . '/*.yaml');
+                $totalFiles += count($yamlFiles);
+            }
+        }
+
+        foreach ($schemaPaths as $schemaPath) {
+            if (! File::exists($schemaPath) || ! File::isDirectory($schemaPath)) {
+                continue;
+            }
+
+            $groupDirectories = File::directories($schemaPath);
+
+            foreach ($groupDirectories as $groupDir) {
+                $groupName = basename($groupDir);
+                $yamlFiles = File::glob($groupDir . '/*.yaml');
+
+                foreach ($yamlFiles as $yamlFile) {
+                    $fileName = basename($yamlFile, '.yaml');
+                    $relativePath = str_replace(base_path() . '/', '', $yamlFile);
+
+                    $yamlContent = File::get($yamlFile);
+                    $yamlContent = mb_convert_encoding($yamlContent, 'UTF-8', 'UTF-8');
+                    $parsedContent = Yaml::parse($yamlContent);
+
+                    if (! isset($parsedContent['objectName'])) {
+                        $parsedContent['objectName'] = $fileName;
+                    }
+
+                    if (! isset($parsedContent['groupName'])) {
+                        $parsedContent['groupName'] = $groupName;
+                    }
+
+                    $key = $parsedContent['objectName'];
+                    if (isset($result[$key])) {
+                        if (strpos($relativePath, 'database/schemas') !== false) {
+                            $result[$key] = $parsedContent;
+                        }
+                    } else {
+                        $result[$key] = $parsedContent;
+                    }
+
+                    $processedFiles++;
+                    if ($progressBar && $totalFiles > 0) {
+                        $progressBar->setProgress(($processedFiles / $totalFiles) * 100);
+                    }
+                }
+            }
+        }
+
+        ksort($result);
+
+        return $result;
     }
 }
