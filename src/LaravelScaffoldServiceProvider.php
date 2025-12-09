@@ -10,7 +10,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyBuildCommand;
-use OmnifyJP\LaravelScaffold\Console\Commands\OmnifyPermissionSyncCommand;
 use OmnifyJP\LaravelScaffold\Console\Commands\OmnifySyncCommand;
 use OmnifyJP\LaravelScaffold\Installers\ComposerConfigUpdater;
 use OmnifyJP\LaravelScaffold\Models\PersonalAccessToken;
@@ -43,7 +42,6 @@ class LaravelScaffoldServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 OmnifyBuildCommand::class,
-                OmnifyPermissionSyncCommand::class,
                 OmnifySyncCommand::class,
             ]);
         }
